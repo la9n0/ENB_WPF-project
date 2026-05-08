@@ -1,0 +1,70 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>WinExe</OutputType>
+        <TargetFramework>net8.0-windows</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <UseWPF>true</UseWPF>
+        <ApplicationIcon>Resources\Pictures\enb.ico</ApplicationIcon>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <Page Update="View\Controls\DropList.xaml">
+        <Generator>MSBuild:Compile</Generator>
+        <XamlRuntime>Wpf</XamlRuntime>
+        <SubType>Designer</SubType>
+      </Page>
+      <Page Update="View\Controls\FileManager.xaml">
+        <Generator>MSBuild:Compile</Generator>
+        <XamlRuntime>Wpf</XamlRuntime>
+        <SubType>Designer</SubType>
+      </Page>
+      <Page Update="View\Controls\SearchPanel.xaml">
+        <Generator>MSBuild:Compile</Generator>
+        <XamlRuntime>Wpf</XamlRuntime>
+        <SubType>Designer</SubType>
+      </Page>
+      <Page Update="View\Controls\UserMenu.xaml">
+        <Generator>MSBuild:Compile</Generator>
+        <XamlRuntime>Wpf</XamlRuntime>
+        <SubType>Designer</SubType>
+      </Page>
+      <Page Update="View\Windows\LogIn.xaml">
+        <Generator>MSBuild:Compile</Generator>
+        <XamlRuntime>Wpf</XamlRuntime>
+        <SubType>Designer</SubType>
+      </Page>
+      <Page Update="View\Windows\MainWindow.xaml">
+        <Generator>MSBuild:Compile</Generator>
+        <XamlRuntime>Wpf</XamlRuntime>
+        <SubType>Designer</SubType>
+      </Page>
+      <Page Update="View\Windows\Register.xaml">
+        <Generator>MSBuild:Compile</Generator>
+        <XamlRuntime>Wpf</XamlRuntime>
+        <SubType>Designer</SubType>
+      </Page>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Page Remove="Resources\DarkTheme.xaml" />
+      <Page Remove="Resources\LightTheme.xaml" />
+      <Page Remove="Resources\EnLang.xaml" />
+      <Resource Include="Resources\Languages\EnLang.xaml" />
+      <Resource Include="Resources\Themes\DarkTheme.xaml" />
+      <Resource Include="Resources\Themes\LightTheme.xaml" />
+      <None Remove="Resources\Pictures\ENB.ico" />
+      <Page Remove="Resources\Languages\RuLang.xaml" />
+      <Resource Include="Resources\Languages\RuLang.xaml">
+        <Generator>MSBuild:Compile</Generator>
+        <XamlRuntime>Wpf</XamlRuntime>
+        <SubType>Designer</SubType>
+      </Resource>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Resources\Pictures\" />
+    </ItemGroup>
+
+</Project>

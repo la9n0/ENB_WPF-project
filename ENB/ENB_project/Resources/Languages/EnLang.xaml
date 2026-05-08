@@ -1,0 +1,72 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+
+    <sys:String x:Key="LanguageLabel">Language:</sys:String>
+    <sys:String x:Key="FillAllFields">Fill in all fields!</sys:String>
+
+    <sys:String x:Key="LogInLoginLabel">Login</sys:String>
+    <sys:String x:Key="LogInPasswordLabel">Password</sys:String>
+    <sys:String x:Key="LogInLoginButton">Sign in</sys:String>
+    <sys:String x:Key="LogInErrorText">Invalid credentials</sys:String>
+    <sys:String x:Key="LogInRegistration">Registration</sys:String>
+    <sys:String x:Key="LogInUserNotFound">User not found</sys:String>
+
+    <sys:String x:Key="RegisterNewUser">New User</sys:String>
+    <sys:String x:Key="RegisterLogin">Login</sys:String>
+    <sys:String x:Key="RegisterPassword">Password</sys:String>
+    <sys:String x:Key="RegisterRepeatPassword">Repeat Password</sys:String>
+    <sys:String x:Key="RegisterEmailError">Invalid format</sys:String>
+    <sys:String x:Key="RegisterCancel">Cancel</sys:String>
+    <sys:String x:Key="RegisterCreate">Create</sys:String>
+    <sys:String x:Key="RegisterPasswordsDontMatch">Passwords don't match</sys:String>
+    <sys:String x:Key="RegisterAlreadyExists">This login is already taken</sys:String>
+
+    <sys:String x:Key="MainNewTab">New tab</sys:String>
+    <sys:String x:Key="MainTooltipFolders">Folders</sys:String>
+    <sys:String x:Key="MainTooltipSearch">Search</sys:String>
+    <sys:String x:Key="MainTooltipProfile">Profile</sys:String>
+    <sys:String x:Key="MainTooltipNewNote">New note (Ctrl+N)</sys:String>
+    <sys:String x:Key="MainTooltipNewFolder">New folder (Ctrl+Shift+N)</sys:String>
+    <sys:String x:Key="MainTooltipRename">Rename</sys:String>
+    <sys:String x:Key="MainTooltipDelete">Delete (Ctrl+Delete)</sys:String>
+    <sys:String x:Key="MainTooltipCollapseAll">Collapse all</sys:String>
+    <sys:String x:Key="MainTooltipNewTab">New tab</sys:String>
+    <sys:String x:Key="MainBtnEdit">Edit</sys:String>
+    <sys:String x:Key="MainBtnSave">Save</sys:String>
+    <sys:String x:Key="MainEmptyCreateFile">Create new file (Ctrl + N)</sys:String>
+    <sys:String x:Key="MainEmptyCreateFolder">Create folder (Ctrl + Shift + N)</sys:String>
+    <sys:String x:Key="MainDeleteConfirm">Delete «{0}»?</sys:String>
+    <sys:String x:Key="MainDeleteTitle">Confirmation</sys:String>
+    <sys:String x:Key="MainNewNoteName">New note</sys:String>
+    <sys:String x:Key="MainNewFolderName">New folder</sys:String>
+
+    <sys:String x:Key="UserMenuTitle">Profile</sys:String>
+    <sys:String x:Key="UserMenuUsername">Username</sys:String>
+    <sys:String x:Key="UserMenuPassword">Password</sys:String>
+    <sys:String x:Key="UserMenuEmail">Email</sys:String>
+    <sys:String x:Key="UserMenuTheme">Theme</sys:String>
+    <sys:String x:Key="UserMenuLanguage">Language</sys:String>
+    <sys:String x:Key="UserMenuEdit">Edit</sys:String>
+    <sys:String x:Key="UserMenuSave">Save</sys:String>
+    <sys:String x:Key="UserMenuEmailError">Invalid email</sys:String>
+    <sys:String x:Key="UserMenuErrorTitle">Error</sys:String>
+    <sys:String x:Key="UserMenuThemeLight">Light</sys:String>
+    <sys:String x:Key="UserMenuThemeDark">Dark</sys:String>
+    <sys:String x:Key="UserMenuLangRu">Русский</sys:String>
+    <sys:String x:Key="UserMenuLangEn">English</sys:String>
+    <sys:String x:Key="UserMenuCurrentPassword">Current password</sys:String>
+    <sys:String x:Key="UserMenuNewPassword">New password</sys:String>
+    <sys:String x:Key="UserMenuRepeatPassword">Repeat new password</sys:String>
+    <sys:String x:Key="UserMenuCancel">Cancel</sys:String>
+    <sys:String x:Key="UserMenuConfirm">Confirm</sys:String>
+    <sys:String x:Key="UserMenuErrorAllFieldsRequired">All fields are required.</sys:String>
+    <sys:String x:Key="UserMenuErrorWrongPassword">Current password is incorrect.</sys:String>
+    <sys:String x:Key="UserMenuErrorPasswordMismatch">New password and confirmation do not match.</sys:String>
+    <sys:String x:Key="UserMenuErrorEmailInvalid">Please enter a valid email.</sys:String>
+    <sys:String x:Key="UserMenuErrorFieldEmpty">Field cannot be empty.</sys:String>
+
+    <sys:String x:Key="SearchPlaceholder">Search notes...</sys:String>
+    <sys:String x:Key="SearchFound">Found: {0}</sys:String>
+
+</ResourceDictionary>

@@ -1,0 +1,72 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+
+    <sys:String x:Key="LanguageLabel">Язык:</sys:String>
+    <sys:String x:Key="FillAllFields">Заполните все поля!</sys:String>
+
+    <sys:String x:Key="LogInLoginLabel">Логин</sys:String>
+    <sys:String x:Key="LogInPasswordLabel">Пароль</sys:String>
+    <sys:String x:Key="LogInLoginButton">Войти</sys:String>
+    <sys:String x:Key="LogInErrorText">Данные введены неверно</sys:String>
+    <sys:String x:Key="LogInRegistration">Регистрация</sys:String>
+    <sys:String x:Key="LogInUserNotFound">Пользователь не найден</sys:String>
+
+    <sys:String x:Key="RegisterNewUser">Новый пользователь</sys:String>
+    <sys:String x:Key="RegisterLogin">Логин</sys:String>
+    <sys:String x:Key="RegisterPassword">Пароль</sys:String>
+    <sys:String x:Key="RegisterRepeatPassword">Повторите пароль</sys:String>
+    <sys:String x:Key="RegisterEmailError">Неверный формат</sys:String>
+    <sys:String x:Key="RegisterCancel">Отмена</sys:String>
+    <sys:String x:Key="RegisterCreate">Создать</sys:String>
+    <sys:String x:Key="RegisterPasswordsDontMatch">Пароли не совпадают</sys:String>
+    <sys:String x:Key="RegisterAlreadyExists">Данный логин уже занят</sys:String>
+
+    <sys:String x:Key="MainNewTab">Новая вкладка</sys:String>
+    <sys:String x:Key="MainTooltipFolders">Папки</sys:String>
+    <sys:String x:Key="MainTooltipSearch">Поиск</sys:String>
+    <sys:String x:Key="MainTooltipProfile">Профиль</sys:String>
+    <sys:String x:Key="MainTooltipNewNote">Новая заметка (Ctrl+N)</sys:String>
+    <sys:String x:Key="MainTooltipNewFolder">Новая папка (Ctrl+Shift+N)</sys:String>
+    <sys:String x:Key="MainTooltipRename">Переименовать</sys:String>
+    <sys:String x:Key="MainTooltipDelete">Удалить (Ctrl+Delete)</sys:String>
+    <sys:String x:Key="MainTooltipCollapseAll">Свернуть всё</sys:String>
+    <sys:String x:Key="MainTooltipNewTab">Новая вкладка</sys:String>
+    <sys:String x:Key="MainBtnEdit">Редактировать</sys:String>
+    <sys:String x:Key="MainBtnSave">Сохранить</sys:String>
+    <sys:String x:Key="MainEmptyCreateFile">Создать новый файл (Ctrl + N)</sys:String>
+    <sys:String x:Key="MainEmptyCreateFolder">Создать папку (Ctrl + Shift + N)</sys:String>
+    <sys:String x:Key="MainDeleteConfirm">Удалить «{0}»?</sys:String>
+    <sys:String x:Key="MainDeleteTitle">Подтверждение</sys:String>
+    <sys:String x:Key="MainNewNoteName">Новая заметка</sys:String>
+    <sys:String x:Key="MainNewFolderName">Новая папка</sys:String>
+
+    <sys:String x:Key="UserMenuTitle">Профиль</sys:String>
+    <sys:String x:Key="UserMenuUsername">Имя пользователя</sys:String>
+    <sys:String x:Key="UserMenuPassword">Пароль</sys:String>
+    <sys:String x:Key="UserMenuEmail">Email</sys:String>
+    <sys:String x:Key="UserMenuTheme">Тема</sys:String>
+    <sys:String x:Key="UserMenuLanguage">Язык</sys:String>
+    <sys:String x:Key="UserMenuEdit">Редактировать</sys:String>
+    <sys:String x:Key="UserMenuSave">Сохранить</sys:String>
+    <sys:String x:Key="UserMenuEmailError">Некорректный email</sys:String>
+    <sys:String x:Key="UserMenuErrorTitle">Ошибка</sys:String>
+    <sys:String x:Key="UserMenuThemeLight">Светлая</sys:String>
+    <sys:String x:Key="UserMenuThemeDark">Тёмная</sys:String>
+    <sys:String x:Key="UserMenuLangRu">Русский</sys:String>
+    <sys:String x:Key="UserMenuLangEn">English</sys:String>
+    <sys:String x:Key="UserMenuCurrentPassword">Текущий пароль</sys:String>
+    <sys:String x:Key="UserMenuNewPassword">Новый пароль</sys:String>
+    <sys:String x:Key="UserMenuRepeatPassword">Повторите новый пароль</sys:String>
+    <sys:String x:Key="UserMenuCancel">Отмена</sys:String>
+    <sys:String x:Key="UserMenuConfirm">Подтвердить</sys:String>
+    <sys:String x:Key="UserMenuErrorAllFieldsRequired">Все поля обязательны для заполнения.</sys:String>
+    <sys:String x:Key="UserMenuErrorWrongPassword">Текущий пароль введён неверно.</sys:String>
+    <sys:String x:Key="UserMenuErrorPasswordMismatch">Новый пароль и подтверждение не совпадают.</sys:String>
+    <sys:String x:Key="UserMenuErrorEmailInvalid">Введите корректный email.</sys:String>
+    <sys:String x:Key="UserMenuErrorFieldEmpty">Поле не может быть пустым.</sys:String>
+
+    <sys:String x:Key="SearchPlaceholder">Поиск заметок...</sys:String>
+    <sys:String x:Key="SearchFound">Найдено: {0}</sys:String>
+
+</ResourceDictionary>
