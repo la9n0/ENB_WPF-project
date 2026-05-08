@@ -32,3 +32,4 @@ D:\university\4_sem\oop\ENB\ENB\ENB_project\obj\Debug\net8.0-windows\View\Contro
 D:\university\4_sem\oop\ENB\ENB\ENB_project\obj\Debug\net8.0-windows\View\Windows\LogIn.baml
 D:\university\4_sem\oop\ENB\ENB\ENB_project\obj\Debug\net8.0-windows\View\Windows\MainWindow.baml
 D:\university\4_sem\oop\ENB\ENB\ENB_project\obj\Debug\net8.0-windows\View\Windows\Register.baml
+D:\university\4_sem\oop\ENB\ENB\ENB_project\obj\Debug\net8.0-windows\ENB_project.sourcelink.json

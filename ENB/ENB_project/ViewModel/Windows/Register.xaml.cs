@@ -13,10 +13,11 @@ namespace ENB_project
         {
             InitializeComponent();
             _language = lang;
-            LanguageDrop.AddItem("Русский");
-            LanguageDrop.AddItem("English");
+
+            LanguageDrop.Items.Add("Русский");
+            LanguageDrop.Items.Add("English");
             LanguageDrop.SelectedIndex = _language == "ru" ? 0 : 1;
-            
+
             EnbFunctional.ApplyTheme("Dark");
             EnbFunctional.ApplyLanguage(_language);
         }
@@ -29,8 +30,7 @@ namespace ENB_project
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)
         {
-            var login = new LogIn(_language);
-            login.Show();
+            new LogIn(_language).Show();
             Close();
         }
 
@@ -73,11 +73,11 @@ namespace ENB_project
 
         private void CreateButton_click(object sender, RoutedEventArgs e)
         {
-            if (string.IsNullOrEmpty(UsernameBox.Text)      ||
-                string.IsNullOrEmpty(PasswordBox1.Password) ||
-                string.IsNullOrEmpty(PasswordBox2.Password) ||
-                string.IsNullOrEmpty(EmailBox.Text)         ||
-                EmailError.Visibility    == Visibility.Visible ||
+            if (string.IsNullOrEmpty(UsernameBox.Text)       ||
+                string.IsNullOrEmpty(PasswordBox1.Password)  ||
+                string.IsNullOrEmpty(PasswordBox2.Password)  ||
+                string.IsNullOrEmpty(EmailBox.Text)          ||
+                EmailError.Visibility     == Visibility.Visible ||
                 PasswordsError.Visibility == Visibility.Visible)
             {
                 MessageBox.Show((string)FindResource("FillAllFields"));
@@ -97,8 +97,7 @@ namespace ENB_project
             list.SaveJson();
 
             EnbFunctional.ApplyTheme("Dark");
-            var main = new MainWindow(UsernameBox.Text);
-            main.Show();
+            new MainWindow(UsernameBox.Text).Show();
             Close();
         }
     }

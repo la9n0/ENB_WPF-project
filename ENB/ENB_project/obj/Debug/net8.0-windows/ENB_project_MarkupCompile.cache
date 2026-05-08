@@ -10,11 +10,11 @@ none
 false
 TRACE;DEBUG;NET;NET8_0;NETCOREAPP
 D:\university\4_sem\oop\ENB\ENB\ENB_project\App.xaml
-7-189185761
+61006863201
 
-141787772354
+13835601040
 198-1185451688
-View\Controls\DropList.xaml;View\Controls\FileManager.xaml;View\Controls\SearchPanel.xaml;View\Controls\UserMenu.xaml;View\Windows\LogIn.xaml;View\Windows\MainWindow.xaml;View\Windows\Register.xaml;
+View\Controls\FileManager.xaml;View\Controls\SearchPanel.xaml;View\Controls\UserMenu.xaml;View\Windows\LogIn.xaml;View\Windows\MainWindow.xaml;View\Windows\Register.xaml;
 
-False
+True
 

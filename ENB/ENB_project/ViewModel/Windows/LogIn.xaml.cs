@@ -7,19 +7,20 @@ namespace ENB_project
     {
         private string _language;
 
-        public LogIn(string lang="ru")
+        public LogIn(string lang = "ru")
         {
             InitializeComponent();
 
             _language = lang;
 
-            LanguageDrop.AddItem("Русский");
-            LanguageDrop.AddItem("English");
+            LanguageDrop.Items.Add("Русский");
+            LanguageDrop.Items.Add("English");
+            LanguageDrop.SelectedIndex = _language == "ru" ? 0 : 1;
 
-            LanguageDrop.List.SelectionChanged += LanguageCombo_SelectionChanged;
-            EnbFunctional.LanguageChanged      += OnLanguageChanged;
+            LanguageDrop.SelectionChanged += LanguageCombo_SelectionChanged;
+            EnbFunctional.LanguageChanged += OnLanguageChanged;
             Closed += (_, _) => EnbFunctional.LanguageChanged -= OnLanguageChanged;
-            
+
             EnbFunctional.ApplyLanguage(_language);
             EnbFunctional.ApplyTheme("Dark");
         }

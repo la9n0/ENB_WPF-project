@@ -6,6 +6,143 @@
 
     <UserControl.Resources>
 
+        <Style x:Key="DropComboBoxToggleButton" TargetType="ToggleButton">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border x:Name="Border"
+                                Background="{DynamicResource SurfaceBrush}"
+                                BorderBrush="{DynamicResource BorderStrongBrush}"
+                                BorderThickness="1"
+                                CornerRadius="4">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="20"/>
+                                </Grid.ColumnDefinitions>
+                                <ContentPresenter Grid.Column="0"
+                                                  Margin="10,0,0,0"
+                                                  VerticalAlignment="Center"
+                                                  HorizontalAlignment="Left"/>
+                                <TextBlock x:Name="Arrow"
+                                           Grid.Column="1"
+                                           Text="›"
+                                           FontSize="14"
+                                           Foreground="{DynamicResource ForegroundGhostBrush}"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"
+                                           RenderTransformOrigin="0.5,0.5">
+                                    <TextBlock.RenderTransform>
+                                        <RotateTransform x:Name="ArrowRotate" Angle="90"/>
+                                    </TextBlock.RenderTransform>
+                                </TextBlock>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Border" Property="Background"  Value="{DynamicResource SurfaceElevatedBrush}"/>
+                                <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource ForegroundGhostBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Border" Property="Background"  Value="{DynamicResource AccentDeepBrush}"/>
+                                <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="ArrowRotate"
+                                                             Storyboard.TargetProperty="Angle"
+                                                             To="270" Duration="0:0:0.15"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="ArrowRotate"
+                                                             Storyboard.TargetProperty="Angle"
+                                                             To="90" Duration="0:0:0.15"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <ControlTemplate x:Key="DropComboBoxTemplate" TargetType="ComboBox">
+            <Grid>
+                <ToggleButton Style="{StaticResource DropComboBoxToggleButton}"
+                              IsChecked="{Binding IsDropDownOpen, Mode=TwoWay,
+                                          RelativeSource={RelativeSource TemplatedParent}}"
+                              Height="{TemplateBinding Height}">
+                    <TextBlock Text="{TemplateBinding Text}"
+                               Foreground="{DynamicResource ForegroundPrimaryBrush}"
+                               FontFamily="Segoe UI"
+                               FontSize="12.5"
+                               VerticalAlignment="Center"/>
+                </ToggleButton>
+                <Popup IsOpen="{Binding IsDropDownOpen,
+                               RelativeSource={RelativeSource TemplatedParent}}"
+                       PlacementTarget="{Binding RelativeSource={RelativeSource TemplatedParent}}"
+                       Placement="Bottom"
+                       StaysOpen="False"
+                       MinWidth="{Binding ActualWidth,
+                                  RelativeSource={RelativeSource TemplatedParent}}">
+                    <Border Background="{DynamicResource SurfaceBrush}"
+                            BorderBrush="{DynamicResource BorderStrongBrush}"
+                            BorderThickness="1"
+                            CornerRadius="4"
+                            Margin="0,2,0,0">
+                        <ItemsPresenter/>
+                    </Border>
+                </Popup>
+            </Grid>
+        </ControlTemplate>
+
+        <Style x:Key="DropComboBoxItemStyle" TargetType="ComboBoxItem">
+            <Setter Property="Foreground"  Value="{DynamicResource ForegroundMutedBrush}"/>
+            <Setter Property="Background"  Value="Transparent"/>
+            <Setter Property="Padding"     Value="10,6"/>
+            <Setter Property="FontFamily"  Value="Segoe UI"/>
+            <Setter Property="FontSize"    Value="12.5"/>
+            <Setter Property="Cursor"      Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBoxItem">
+                        <Border x:Name="ItemBorder"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="3"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ItemBorder" Property="Background"
+                                        Value="{DynamicResource SurfaceHighBrush}"/>
+                                <Setter Property="Foreground"
+                                        Value="{DynamicResource ForegroundPrimaryBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="ItemBorder" Property="Background"
+                                        Value="{DynamicResource AccentDeepBrush}"/>
+                                <Setter Property="Foreground"
+                                        Value="{DynamicResource AccentBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="DropComboBox" TargetType="ComboBox">
+            <Setter Property="Template"           Value="{StaticResource DropComboBoxTemplate}"/>
+            <Setter Property="ItemContainerStyle" Value="{StaticResource DropComboBoxItemStyle}"/>
+            <Setter Property="Cursor"             Value="Hand"/>
+            <Setter Property="IsEditable"         Value="False"/>
+        </Style>
+
         <Style x:Key="FieldEditButton" TargetType="Button">
             <Setter Property="Background"        Value="Transparent"/>
             <Setter Property="BorderThickness"   Value="1"/>
@@ -304,9 +441,11 @@
                             <TextBlock Style="{DynamicResource FieldLabel}"
                                        Text="{DynamicResource UserMenuTheme}"
                                        Margin="0,0,0,6"/>
-                            <local:DropList x:Name="ThemeDropList"
-                                            HorizontalAlignment="Left"
-                                            Width="180"/>
+                            <ComboBox x:Name="ThemeDropList"
+                                      Style="{StaticResource DropComboBox}"
+                                      HorizontalAlignment="Left"
+                                      Width="180"
+                                      Height="30"/>
                         </StackPanel>
                     </Border>
 
@@ -315,9 +454,11 @@
                             <TextBlock Style="{DynamicResource FieldLabel}"
                                        Text="{DynamicResource UserMenuLanguage}"
                                        Margin="0,0,0,6"/>
-                            <local:DropList x:Name="LanguageDropList"
-                                            HorizontalAlignment="Left"
-                                            Width="180"/>
+                            <ComboBox x:Name="LanguageDropList"
+                                      Style="{StaticResource DropComboBox}"
+                                      HorizontalAlignment="Left"
+                                      Width="180"
+                                      Height="30"/>
                         </StackPanel>
                     </Border>
 

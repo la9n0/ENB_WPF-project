@@ -17,8 +17,8 @@ namespace ENB_project.Controls
             InitializeComponent();
             _username = username;
 
-            ThemeDropList.List.SelectionChanged    += ThemeOrLanguage_Changed;
-            LanguageDropList.List.SelectionChanged += ThemeOrLanguage_Changed;
+            ThemeDropList.SelectionChanged    += ThemeOrLanguage_Changed;
+            LanguageDropList.SelectionChanged += ThemeOrLanguage_Changed;
 
             LoadData();
         }
@@ -45,22 +45,22 @@ namespace ENB_project.Controls
             UsernameBox.Text = _username;
             EmailBox.Text    = _user.Email;
 
-            ThemeDropList.List.SelectionChanged    -= ThemeOrLanguage_Changed;
-            LanguageDropList.List.SelectionChanged -= ThemeOrLanguage_Changed;
+            ThemeDropList.SelectionChanged    -= ThemeOrLanguage_Changed;
+            LanguageDropList.SelectionChanged -= ThemeOrLanguage_Changed;
 
             ThemeDropList.Items.Clear();
-            ThemeDropList.AddItem((string)TryFindResource("UserMenuThemeLight") ?? "Light");
-            ThemeDropList.AddItem((string)TryFindResource("UserMenuThemeDark")  ?? "Dark");
+            ThemeDropList.Items.Add((string)TryFindResource("UserMenuThemeLight") ?? "Light");
+            ThemeDropList.Items.Add((string)TryFindResource("UserMenuThemeDark")  ?? "Dark");
 
             LanguageDropList.Items.Clear();
-            LanguageDropList.AddItem((string)TryFindResource("UserMenuLangRu") ?? "Русский");
-            LanguageDropList.AddItem((string)TryFindResource("UserMenuLangEn") ?? "English");
+            LanguageDropList.Items.Add((string)TryFindResource("UserMenuLangRu") ?? "Русский");
+            LanguageDropList.Items.Add((string)TryFindResource("UserMenuLangEn") ?? "English");
 
             ThemeDropList.SelectedIndex    = _user.Theme    == "Light" ? 0 : 1;
             LanguageDropList.SelectedIndex = _user.Language == "ru"    ? 0 : 1;
 
-            ThemeDropList.List.SelectionChanged    += ThemeOrLanguage_Changed;
-            LanguageDropList.List.SelectionChanged += ThemeOrLanguage_Changed;
+            ThemeDropList.SelectionChanged    += ThemeOrLanguage_Changed;
+            LanguageDropList.SelectionChanged += ThemeOrLanguage_Changed;
         }
 
         private void PasswordEdit_Click(object sender, RoutedEventArgs e)
@@ -80,10 +80,6 @@ namespace ENB_project.Controls
             PasswordEditBtn.Visibility = Visibility.Visible;
         }
 
-        /// <summary>
-        /// Validates current password, checks new password confirmation and non-empty fields.
-        /// Saves the new password on success.
-        /// </summary>
         private void PasswordDialogConfirm_Click(object sender, RoutedEventArgs e)
         {
             var current = CurrentPasswordBox.Password;

@@ -10,11 +10,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Page Update="View\Controls\DropList.xaml">
-        <Generator>MSBuild:Compile</Generator>
-        <XamlRuntime>Wpf</XamlRuntime>
-        <SubType>Designer</SubType>
-      </Page>
       <Page Update="View\Controls\FileManager.xaml">
         <Generator>MSBuild:Compile</Generator>
         <XamlRuntime>Wpf</XamlRuntime>
