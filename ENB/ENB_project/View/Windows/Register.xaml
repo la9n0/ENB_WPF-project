@@ -1,7 +1,7 @@
 ﻿<Window x:Class="ENB_project.Register"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="ENB" Height="480" Width="340"
+        Title="ENB" SizeToContent="Height" Width="340"
         WindowStartupLocation="CenterScreen"
         WindowStyle="None"
         AllowsTransparency="True"
@@ -186,8 +186,18 @@
                              SelectionBrush="{DynamicResource AccentBrush}"
                              BorderThickness="0"
                              FontFamily="Segoe UI" FontSize="13"
-                             Padding="8,6"/>
+                             Padding="8,6"
+                             TextChanged="UsernameSizeControl"/>
                 </Border>
+                
+                <TextBlock x:Name="LoginError"
+                           Foreground="{DynamicResource ErrorBrush}"
+                           FontFamily="Segoe UI"
+                           FontSize="11"
+                           TextAlignment="Center"
+                           Margin="0,-10,0,0"
+                           Visibility="Collapsed"
+                           TextWrapping="Wrap"/>
 
                 <TextBlock Text="{DynamicResource RegisterPassword}"
                            Foreground="{DynamicResource ForegroundSubtleBrush}"
@@ -204,8 +214,18 @@
                                  BorderThickness="0"
                                  FontFamily="Segoe UI" FontSize="13"
                                  Padding="8,6"
-                                 LostFocus="IsPasswordsMatch"/>
+                                 LostFocus="IsPasswordsMatch"
+                                 PasswordChanged="PasswordSizeControl"/>
                 </Border>
+                
+                <TextBlock x:Name="PasswordError"
+                           Foreground="{DynamicResource ErrorBrush}"
+                           FontFamily="Segoe UI"
+                           FontSize="11"
+                           TextAlignment="Center"
+                           Margin="0,-10,0,10"
+                           Visibility="Collapsed"
+                           TextWrapping="Wrap"/>
 
                 <TextBlock Text="{DynamicResource RegisterRepeatPassword}"
                            Foreground="{DynamicResource ForegroundSubtleBrush}"
@@ -222,14 +242,14 @@
                                  BorderThickness="0"
                                  FontFamily="Segoe UI" FontSize="13"
                                  Padding="8,6"
-                                 LostFocus="IsPasswordsMatch"/>
+                                 PasswordChanged="IsPasswordsMatch"/>
                 </Border>
                 <TextBlock x:Name="PasswordsError"
                            Text="{DynamicResource RegisterPasswordsDontMatch}"
                            Foreground="{DynamicResource ErrorBrush}"
                            FontFamily="Segoe UI" FontSize="11"
                            Margin="0,0,0,10"
-                           Visibility="Hidden"/>
+                           Visibility="Collapsed"/>
 
                 <TextBlock Text="Email"
                            Foreground="{DynamicResource ForegroundSubtleBrush}"
@@ -248,14 +268,14 @@
                              FontFamily="Segoe UI" FontSize="13"
                              Padding="8,6"
                              PreviewTextInput="OnlyText"
-                             LostFocus="EmailCheck"/>
+                             TextChanged="EmailCheck"/>
                 </Border>
                 <TextBlock x:Name="EmailError"
                            Text="{DynamicResource RegisterEmailError}"
                            Foreground="{DynamicResource ErrorBrush}"
                            FontFamily="Segoe UI" FontSize="11"
-                           Margin="0,0,0,12"
-                           Visibility="Hidden"/>
+                           Margin="0,0,0,5"
+                           Visibility="Collapsed"/>
 
                 <TextBlock Text="{DynamicResource LanguageLabel}"
                            Foreground="{DynamicResource ForegroundSubtleBrush}"
@@ -266,11 +286,20 @@
                           Style="{StaticResource DropComboBox}"
                           Width="290"
                           Height="30"
+                          Margin="0,0,0,20"
                           HorizontalAlignment="Left"
                           SelectionChanged="LanguageCombo_SelectionChanged"/>
 
+                <TextBlock x:Name="ErrorText"
+                           Foreground="{DynamicResource ErrorBrush}"
+                           FontFamily="Segoe UI"
+                           FontSize="11"
+                           TextAlignment="Center"
+                           Margin="0,-15,0,10"
+                           Visibility="Collapsed"
+                           TextWrapping="Wrap"/>
             </StackPanel>
-
+            
             <Grid Grid.Row="1">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>

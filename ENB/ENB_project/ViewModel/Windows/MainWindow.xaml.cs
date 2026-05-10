@@ -48,11 +48,11 @@ namespace ENB_project
         private bool _isUserMenuOpen = false;
         private bool _isSearchOpen   = false;
 
-        public MainWindow(string username)
+        public MainWindow(string login)
         {
             InitializeComponent();
             TabStrip.ItemsSource = _tabs;
-            LoadUser(username);
+            LoadUser(login);
             BindShortcuts();
             AddTab();
 
@@ -75,18 +75,18 @@ namespace ENB_project
                 EditSaveBtn.Content = editText;
         }
 
-        private void LoadUser(string username)
+        private void LoadUser(string login)
         {
             try
             {
-                _user = _userList.GetUser(username)
+                _user = _userList.GetUser(login)
                         ?? throw MyExceptions.Navigation(
-                            $"Пользователь «{username}» не найден", "MainWindow.LoadUser");
+                            $"Пользователь «{login}» не найден", "MainWindow.LoadUser");
             }
             catch (MyExceptions)
             {
-                _userList.AddUser(username, "", "", "Dark", "ru");
-                _user = _userList.GetUser(username)!;
+                _userList.AddUser(login, "", "", "Dark", "ru");
+                _user = _userList.GetUser(login)!;
             }
             catch (Exception ex)
             {
@@ -98,7 +98,7 @@ namespace ENB_project
             EnbFunctional.ApplyLanguage(_user.Language);
 
             MyFileManager.LoadFromTree(_user.Tree);
-            UserMenuControl.Content = new UserMenu(username);
+            UserMenuControl.Content = new UserMenu(login);
         }
 
         private void BindShortcuts()
@@ -174,7 +174,7 @@ namespace ENB_project
 
         private void CloseUserMenu()
         {
-            _user = _userList.GetUser(_user.Username) ?? _user;
+            _user = _userList.GetUser(_user.Login) ?? _user;
 
             _isUserMenuOpen            = false;
             UserMenuControl.Visibility = Visibility.Collapsed;
@@ -342,7 +342,7 @@ namespace ENB_project
                 if (node != null)
                 {
                     node.Name = newName;
-                    _userList.RenameNode(_user.Username, oldName, newName);
+                    _userList.RenameNode(_user.Login, oldName, newName);
 
                     foreach (var tab in _tabs.Where(t => t.NoteName == oldName))
                     {
@@ -406,7 +406,7 @@ namespace ENB_project
             if (node == null) return;
 
             node.Content = NoteEditor.Text;
-            _userList.SaveNoteContent(_user.Username, _activeTab.NoteName, NoteEditor.Text);
+            _userList.SaveNoteContent(_user.Login, _activeTab.NoteName, NoteEditor.Text);
         }
 
         private void MyFileManager_ItemMoved(
@@ -426,7 +426,7 @@ namespace ENB_project
             }
 
             _user.Tree.Move(draggedNode, targetNode);
-            _userList.MoveNode(_user.Username, draggedNode, targetNode);
+            _userList.MoveNode(_user.Login, draggedNode, targetNode);
 
             var currentNoteName = _activeTab?.NoteName;
             MyFileManager.LoadFromTree(_user.Tree);
@@ -452,13 +452,13 @@ namespace ENB_project
 
             if (selected == null)
             {
-                newNode = _userList.AddNodeToRoot(_user.Username, name, type);
+                newNode = _userList.AddNodeToRoot(_user.Login, name, type);
                 _user.Tree.Roots.Add(newNode);
             }
             else if (selected.IsFolder)
             {
                 var parentNode = _user.Tree.FindByName(selected.Name)!;
-                newNode = _userList.AddNodeToFolder(_user.Username, parentNode, name, type);
+                newNode = _userList.AddNodeToFolder(_user.Login, parentNode, name, type);
                 parentNode.Children.Add(newNode);
                 newNode.Parent = parentNode;
                 MyFileManager.Expand(selected);
@@ -469,13 +469,13 @@ namespace ENB_project
                 var parentNode = fileNode.Parent;
                 if (parentNode != null)
                 {
-                    newNode = _userList.AddNodeToFolder(_user.Username, parentNode, name, type);
+                    newNode = _userList.AddNodeToFolder(_user.Login, parentNode, name, type);
                     parentNode.Children.Add(newNode);
                     newNode.Parent = parentNode;
                 }
                 else
                 {
-                    newNode = _userList.AddNodeToRoot(_user.Username, name, type);
+                    newNode = _userList.AddNodeToRoot(_user.Login, name, type);
                     _user.Tree.Roots.Add(newNode);
                 }
             }
@@ -506,7 +506,7 @@ namespace ENB_project
             if (node == null) return;
 
             _user.Tree.Remove(node);
-            _userList.RemoveNode(_user.Username, node);
+            _userList.RemoveNode(_user.Login, node);
 
             foreach (var tab in _tabs.Where(t => t.NoteName == selected.Name).ToList())
                 CloseTab(tab);
@@ -553,7 +553,7 @@ namespace ENB_project
 
             if (!string.IsNullOrEmpty(newName) && oldName != newName)
             {
-                _userList.RenameNode(_user.Username, oldName, newName);
+                _userList.RenameNode(_user.Login, oldName, newName);
                 node.Name = newName;
                 item.Name = newName;
 
@@ -584,7 +584,7 @@ namespace ENB_project
                 && (item.Name == newNoteName || item.Name == newFolderName))
             {
                 _user.Tree.Remove(node);
-                _userList.RemoveNode(_user.Username, node);
+                _userList.RemoveNode(_user.Login, node);
                 MyFileManager.LoadFromTree(_user.Tree);
             }
         }

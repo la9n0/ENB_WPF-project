@@ -6,6 +6,13 @@ namespace ENB_project
     public partial class LogIn
     {
         private string _language;
+        
+        private enum ErrorType
+        {
+            User,
+            Login,
+            Password
+        }
 
         public LogIn(string lang = "ru")
         {
@@ -38,9 +45,13 @@ namespace ENB_project
             var login    = LoginBox.Text.Trim();
             var password = PasswordBox.Password;
 
+            if (LoginError.Visibility == Visibility.Visible || PasswordError.Visibility == Visibility.Visible)
+                return;
             if (string.IsNullOrEmpty(login) || string.IsNullOrEmpty(password))
             {
-                ShowError((string)TryFindResource("FillAllFields") ?? "Fill in all fields!");
+                ShowError(ErrorType.User, 
+                    (string)TryFindResource("FillAllFields") 
+                    ?? "Fill in all fields!");
                 return;
             }
 
@@ -51,13 +62,17 @@ namespace ENB_project
 
                 if (user == null)
                 {
-                    ShowError((string)TryFindResource("LogInUserNotFound") ?? "User not found");
+                    ShowError(ErrorType.User, 
+                        (string)TryFindResource("LogInUserNotFound") 
+                        ?? "User not found");
                     return;
                 }
 
                 if (user.Password != password)
                 {
-                    ShowError((string)TryFindResource("LogInErrorText") ?? "Invalid credentials");
+                    ShowError(ErrorType.User, 
+                        (string)TryFindResource("LogInErrorText") 
+                        ?? "Invalid credentials");
                     return;
                 }
 
@@ -68,20 +83,75 @@ namespace ENB_project
             }
             catch (MyExceptions)
             {
-                ShowError((string)TryFindResource("LogInUserNotFound") ?? "User not found");
+                ShowError(ErrorType.User, 
+                    (string)TryFindResource("LogInUserNotFound") 
+                    ?? "User not found");
             }
         }
 
-        private void ShowError(string message)
+        private void ShowError(ErrorType type, string message)
         {
-            ErrorText.Text       = message;
-            ErrorText.Visibility = Visibility.Visible;
+            switch (type)
+            {
+                case ErrorType.User:
+                    ErrorText.Text = message;
+                    ErrorText.Visibility = Visibility.Visible;
+                    break;
+
+                case ErrorType.Login:
+                    LoginError.Text = message;
+                    LoginError.Visibility = Visibility.Visible;
+                    break;
+
+                case ErrorType.Password:
+                    PasswordError.Text = message;
+                    PasswordError.Visibility = Visibility.Visible;
+                    break;
+            }
         }
 
         private void RegistrationButton_click(object sender, RoutedEventArgs e)
         {
             new Register(_language).Show();
             Close();
+        }
+
+        private void UsernameSizeControl(object sender, TextChangedEventArgs e)
+        {
+            LoginError.Visibility = Visibility.Collapsed;
+            var tb = (TextBox)sender;
+            switch (tb.Text.Length)
+            {
+                case < 4:
+                    ShowError(ErrorType.Login, 
+                        (string)TryFindResource("UserLoginMinSize") 
+                        ?? "Login must contain at least 4 characters");
+                    break;
+                case > 25:
+                    ShowError(ErrorType.Login, 
+                        (string)TryFindResource("UserLoginMaxSize") 
+                        ?? "Login must contain no more than 25 characters");
+                    break;
+            }
+        }
+        
+        private void PasswordSizeControl(object sender, RoutedEventArgs e)
+        {
+            PasswordError.Visibility = Visibility.Collapsed;
+            var pb = (PasswordBox)sender;
+            switch (pb.Password.Length)
+            {
+                case < 8:
+                    ShowError(ErrorType.Password, 
+                        (string)TryFindResource("UserPasswordMinSize") 
+                        ?? "Password must contain at least 8 characters");
+                    break;
+                case > 30:
+                    ShowError(ErrorType.Password, 
+                        (string)TryFindResource("UserPasswordMaxSize") 
+                        ?? "Password must contain no more than 30 characters");
+                    break;
+            }
         }
     }
 }

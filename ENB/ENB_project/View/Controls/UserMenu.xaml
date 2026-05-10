@@ -313,8 +313,8 @@
                     <Border Style="{DynamicResource SectionBorder}">
                         <StackPanel>
                             <TextBlock Style="{DynamicResource FieldLabel}"
-                                       Text="{DynamicResource UserMenuUsername}"/>
-                            <TextBox x:Name="UsernameBox"
+                                       Text="{DynamicResource UserMenuLogin}"/>
+                            <TextBox x:Name="LoginBox"
                                      Style="{DynamicResource FieldTextBox}"
                                      IsReadOnly="True"/>
                         </StackPanel>
@@ -365,14 +365,32 @@
                                                Margin="0,0,0,4"/>
                                     <PasswordBox x:Name="NewPasswordBox"
                                                  Style="{DynamicResource FieldPasswordBox}"
-                                                 Margin="0,0,0,10"/>
+                                                 Margin="0,0,0,4"
+                                                 PasswordChanged="NewPasswordSizeControl"/>
+
+                                    <TextBlock x:Name="NewPasswordError"
+                                               Foreground="{DynamicResource ErrorBrush}"
+                                               FontFamily="Segoe UI"
+                                               FontSize="11"
+                                               Margin="0,0,0,6"
+                                               Visibility="Collapsed"
+                                               TextWrapping="Wrap"/>
 
                                     <TextBlock Text="{DynamicResource UserMenuRepeatPassword}"
                                                Style="{DynamicResource FieldLabel}"
                                                Margin="0,0,0,4"/>
                                     <PasswordBox x:Name="RepeatPasswordBox"
                                                  Style="{DynamicResource FieldPasswordBox}"
-                                                 Margin="0,0,0,8"/>
+                                                 Margin="0,0,0,4"
+                                                 PasswordChanged="RepeatPasswordSizeControl"/>
+
+                                    <TextBlock x:Name="RepeatPasswordError"
+                                               Foreground="{DynamicResource ErrorBrush}"
+                                               FontFamily="Segoe UI"
+                                               FontSize="11"
+                                               Margin="0,0,0,6"
+                                               Visibility="Collapsed"
+                                               TextWrapping="Wrap"/>
 
                                     <TextBlock x:Name="PasswordDialogError"
                                                Foreground="{DynamicResource ErrorBrush}"

@@ -8,14 +8,14 @@ namespace ENB_project.Controls
 {
     public partial class UserMenu : UserControl
     {
-        private readonly string   _username;
+        private readonly string   _login;
         private readonly UserList _userList = new();
         private User?             _user;
 
-        public UserMenu(string username)
+        public UserMenu(string login)
         {
             InitializeComponent();
-            _username = username;
+            _login = login;
 
             ThemeDropList.SelectionChanged    += ThemeOrLanguage_Changed;
             LanguageDropList.SelectionChanged += ThemeOrLanguage_Changed;
@@ -27,7 +27,7 @@ namespace ENB_project.Controls
         {
             try
             {
-                _user = _userList.GetUser(_username);
+                _user = _userList.GetUser(_login);
             }
             catch (Exception ex)
             {
@@ -37,8 +37,8 @@ namespace ENB_project.Controls
 
             if (_user == null) return;
 
-            UsernameBox.Text = _username;
-            EmailBox.Text    = _user.Email;
+            LoginBox.Text  = _login;
+            EmailBox.Text  = _user.Email;
 
             ThemeDropList.SelectionChanged    -= ThemeOrLanguage_Changed;
             LanguageDropList.SelectionChanged -= ThemeOrLanguage_Changed;
@@ -63,6 +63,8 @@ namespace ENB_project.Controls
             PasswordEditBtn.Visibility     = Visibility.Collapsed;
             PasswordDialog.Visibility      = Visibility.Visible;
             PasswordDialogError.Visibility = Visibility.Collapsed;
+            NewPasswordError.Visibility    = Visibility.Collapsed;
+            RepeatPasswordError.Visibility = Visibility.Collapsed;
             CurrentPasswordBox.Clear();
             NewPasswordBox.Clear();
             RepeatPasswordBox.Clear();
@@ -75,11 +77,59 @@ namespace ENB_project.Controls
             PasswordEditBtn.Visibility = Visibility.Visible;
         }
 
+        private void NewPasswordSizeControl(object sender, RoutedEventArgs e)
+        {
+            NewPasswordError.Visibility = Visibility.Collapsed;
+
+            var pb = (PasswordBox)sender;
+
+            switch (pb.Password.Length)
+            {
+                case < 8:
+                    NewPasswordError.Text       = (string)TryFindResource("UserPasswordMinSize")
+                                                  ?? "Password must contain at least 8 characters";
+                    NewPasswordError.Visibility = Visibility.Visible;
+                    break;
+                case > 30:
+                    NewPasswordError.Text       = (string)TryFindResource("UserPasswordMaxSize")
+                                                  ?? "Password must contain no more than 30 characters";
+                    NewPasswordError.Visibility = Visibility.Visible;
+                    break;
+            }
+        }
+
+        private void RepeatPasswordSizeControl(object sender, RoutedEventArgs e)
+        {
+            RepeatPasswordError.Visibility = Visibility.Collapsed;
+
+            var pb = (PasswordBox)sender;
+
+            switch (pb.Password.Length)
+            {
+                case < 8:
+                    RepeatPasswordError.Text       = (string)TryFindResource("UserPasswordMinSize")
+                                                     ?? "Password must contain at least 8 characters";
+                    RepeatPasswordError.Visibility = Visibility.Visible;
+                    break;
+                case > 30:
+                    RepeatPasswordError.Text       = (string)TryFindResource("UserPasswordMaxSize")
+                                                     ?? "Password must contain no more than 30 characters";
+                    RepeatPasswordError.Visibility = Visibility.Visible;
+                    break;
+            }
+        }
+
         private void PasswordDialogConfirm_Click(object sender, RoutedEventArgs e)
         {
+            PasswordDialogError.Visibility = Visibility.Collapsed;
+
             var current = CurrentPasswordBox.Password;
             var next    = NewPasswordBox.Password;
             var repeat  = RepeatPasswordBox.Password;
+
+            if (NewPasswordError.Visibility    == Visibility.Visible ||
+                RepeatPasswordError.Visibility == Visibility.Visible)
+                return;
 
             if (string.IsNullOrWhiteSpace(current) ||
                 string.IsNullOrWhiteSpace(next)    ||
@@ -104,8 +154,8 @@ namespace ENB_project.Controls
                 return;
             }
 
-            _userList.EditUser(_username, nameof(User.Password), next);
-            _user = _userList.GetUser(_username);
+            _userList.EditUser(_login, nameof(User.Password), next);
+            _user = _userList.GetUser(_login);
 
             PasswordDialog.Visibility  = Visibility.Collapsed;
             PasswordEditBtn.Visibility = Visibility.Visible;
@@ -150,8 +200,8 @@ namespace ENB_project.Controls
                 return;
             }
 
-            _userList.EditUser(_username, nameof(User.Email), EmailBox.Text.Trim());
-            _user = _userList.GetUser(_username);
+            _userList.EditUser(_login, nameof(User.Email), EmailBox.Text.Trim());
+            _user = _userList.GetUser(_login);
 
             EmailBox.IsReadOnly  = true;
             EmailEditBtn.Content = TryFindResource("UserMenuEdit") ?? "Edit";
@@ -164,13 +214,13 @@ namespace ENB_project.Controls
             var theme    = ThemeDropList.SelectedIndex    == 0 ? "Light" : "Dark";
             var language = LanguageDropList.SelectedIndex == 0 ? "ru"    : "en";
 
-            _userList.EditUser(_username, nameof(User.Theme),    theme);
-            _userList.EditUser(_username, nameof(User.Language), language);
+            _userList.EditUser(_login, nameof(User.Theme),    theme);
+            _userList.EditUser(_login, nameof(User.Language), language);
 
             EnbFunctional.ApplyTheme(theme);
             EnbFunctional.ApplyLanguage(language);
 
-            _user = _userList.GetUser(_username);
+            _user = _userList.GetUser(_login);
             LoadData();
         }
 

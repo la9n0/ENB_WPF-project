@@ -4,6 +4,10 @@
 
     <sys:String x:Key="LanguageLabel">Language:</sys:String>
     <sys:String x:Key="FillAllFields">Fill in all fields!</sys:String>
+    <sys:String x:Key="UserLoginMinSize">Login must contain at least 4 characters</sys:String>
+    <sys:String x:Key="UserLoginMaxSize">Login must contain no more than 25 characters</sys:String>
+    <sys:String x:Key="UserPasswordMinSize">Password must contain at least 8 characters</sys:String>
+    <sys:String x:Key="UserPasswordMaxSize">Password must contain no more than 30 characters</sys:String>
 
     <sys:String x:Key="LogInLoginLabel">Login</sys:String>
     <sys:String x:Key="LogInPasswordLabel">Password</sys:String>
@@ -42,7 +46,7 @@
     <sys:String x:Key="MainNewFolderName">New folder</sys:String>
 
     <sys:String x:Key="UserMenuTitle">Profile</sys:String>
-    <sys:String x:Key="UserMenuUsername">Username</sys:String>
+    <sys:String x:Key="UserMenuLogin">Username</sys:String>
     <sys:String x:Key="UserMenuPassword">Password</sys:String>
     <sys:String x:Key="UserMenuEmail">Email</sys:String>
     <sys:String x:Key="UserMenuTheme">Theme</sys:String>

@@ -8,27 +8,27 @@ namespace ENB_project
     /// </summary>
     public class UserList
     {
-        public User? GetUser(string username)
+        public User? GetUser(string login)
         {
             using var db = new AppDbContext();
             var entity = db.Users
                 .AsNoTracking()
-                .FirstOrDefault(u => u.Username == username);
+                .FirstOrDefault(u => u.Login == login);
 
             return entity == null ? null : MapUser(entity, LoadTree(entity.Id));
         }
 
-        public bool AddUser(string username, string password,
+        public bool AddUser(string login, string password,
             string email, string theme, string language)
         {
             using var db = new AppDbContext();
 
-            if (db.Users.Any(u => u.Username == username))
+            if (db.Users.Any(u => u.Login == login))
                 return false;
 
             db.Users.Add(new UserEntity
             {
-                Username = username,
+                Login    = login,
                 Password = password,
                 Email    = email,
                 Theme    = theme,
@@ -38,19 +38,19 @@ namespace ENB_project
             return true;
         }
 
-        public void DelUser(string username)
+        public void DelUser(string login)
         {
             using var db = new AppDbContext();
-            var entity = db.Users.FirstOrDefault(u => u.Username == username);
+            var entity = db.Users.FirstOrDefault(u => u.Login == login);
             if (entity == null) return;
             db.Users.Remove(entity);
             db.SaveChanges();
         }
 
-        public bool EditUser(string username, string propertyName, string value)
+        public bool EditUser(string login, string propertyName, string value)
         {
             using var db = new AppDbContext();
-            var entity = db.Users.FirstOrDefault(u => u.Username == username);
+            var entity = db.Users.FirstOrDefault(u => u.Login == login);
             if (entity == null) return false;
 
             switch (propertyName)
@@ -66,42 +66,42 @@ namespace ENB_project
             return true;
         }
 
-        public FileSystemTree GetTree(string username)
+        public FileSystemTree GetTree(string login)
         {
-            var entity = GetUserEntity(username, "UserList.GetTree");
+            var entity = GetUserEntity(login, "UserList.GetTree");
             return LoadTree(entity.Id);
         }
 
-        public FileSystemNode AddNodeToRoot(string username, string nodeName,
+        public FileSystemNode AddNodeToRoot(string login, string nodeName,
             FileItemType type = FileItemType.File)
         {
-            var entity    = GetUserEntity(username, "UserList.AddNodeToRoot");
+            var entity    = GetUserEntity(login, "UserList.AddNodeToRoot");
             var sortOrder = CountRoots(entity.Id);
             return CreateNode(entity.Id, null, nodeName, type, sortOrder);
         }
 
-        public FileSystemNode AddNodeToFolder(string username,
+        public FileSystemNode AddNodeToFolder(string login,
             FileSystemNode parent, string nodeName,
             FileItemType type = FileItemType.File)
         {
-            var entity    = GetUserEntity(username, "UserList.AddNodeToFolder");
+            var entity    = GetUserEntity(login, "UserList.AddNodeToFolder");
             var parentDb  = GetNodeEntity(parent.Name, entity.Id, "UserList.AddNodeToFolder");
             var sortOrder = parentDb.Children.Count;
             return CreateNode(entity.Id, parentDb.Id, nodeName, type, sortOrder);
         }
 
-        public FileSystemNode InsertNode(string username,
+        public FileSystemNode InsertNode(string login,
             FileSystemNode parent, int index, string nodeName,
             FileItemType type = FileItemType.File)
         {
-            var entity   = GetUserEntity(username, "UserList.InsertNode");
+            var entity   = GetUserEntity(login, "UserList.InsertNode");
             var parentDb = GetNodeEntity(parent.Name, entity.Id, "UserList.InsertNode");
             return CreateNode(entity.Id, parentDb.Id, nodeName, type, index);
         }
 
-        public bool RemoveNode(string username, FileSystemNode node)
+        public bool RemoveNode(string login, FileSystemNode node)
         {
-            var entity = GetUserEntity(username, "UserList.RemoveNode");
+            var entity   = GetUserEntity(login, "UserList.RemoveNode");
             using var db = new AppDbContext();
 
             var nodeDb = db.FileSystemNodes
@@ -115,9 +115,9 @@ namespace ENB_project
             return true;
         }
 
-        public void MoveNode(string username, FileSystemNode node, FileSystemNode? newParent)
+        public void MoveNode(string login, FileSystemNode node, FileSystemNode? newParent)
         {
-            var entity = GetUserEntity(username, "UserList.MoveNode");
+            var entity   = GetUserEntity(login, "UserList.MoveNode");
             using var db = new AppDbContext();
 
             var nodeDb = db.FileSystemNodes
@@ -144,9 +144,9 @@ namespace ENB_project
             db.SaveChanges();
         }
 
-        public FileSystemNode? FindNode(string username, string nodeName)
+        public FileSystemNode? FindNode(string login, string nodeName)
         {
-            var entity = GetUserEntity(username, "UserList.FindNode");
+            var entity   = GetUserEntity(login, "UserList.FindNode");
             using var db = new AppDbContext();
 
             var nodeDb = db.FileSystemNodes
@@ -166,9 +166,9 @@ namespace ENB_project
             };
         }
 
-        public void ClearTree(string username)
+        public void ClearTree(string login)
         {
-            var entity = GetUserEntity(username, "UserList.ClearTree");
+            var entity   = GetUserEntity(login, "UserList.ClearTree");
             using var db = new AppDbContext();
 
             var roots = db.FileSystemNodes
@@ -184,9 +184,9 @@ namespace ENB_project
         /// <summary>
         /// Сохраняет текст заметки. Создаёт запись NoteContent, если её ещё нет.
         /// </summary>
-        public void SaveNoteContent(string username, string nodeName, string content)
+        public void SaveNoteContent(string login, string nodeName, string content)
         {
-            var entity = GetUserEntity(username, "UserList.SaveNoteContent");
+            var entity   = GetUserEntity(login, "UserList.SaveNoteContent");
             using var db = new AppDbContext();
 
             var nodeDb = db.FileSystemNodes
@@ -203,9 +203,9 @@ namespace ENB_project
             db.SaveChanges();
         }
 
-        public void RenameNode(string username, string oldName, string newName)
+        public void RenameNode(string login, string oldName, string newName)
         {
-            var entity = GetUserEntity(username, "UserList.RenameNode");
+            var entity   = GetUserEntity(login, "UserList.RenameNode");
             using var db = new AppDbContext();
 
             var nodeDb = db.FileSystemNodes
@@ -217,12 +217,12 @@ namespace ENB_project
             db.SaveChanges();
         }
 
-        private static UserEntity GetUserEntity(string username, string location)
+        private static UserEntity GetUserEntity(string login, string location)
         {
             using var db = new AppDbContext();
-            return db.Users.AsNoTracking().FirstOrDefault(u => u.Username == username)
+            return db.Users.AsNoTracking().FirstOrDefault(u => u.Login == login)
                 ?? throw MyExceptions.Navigation(
-                    $"Пользователь «{username}» не найден", location);
+                    $"Пользователь «{login}» не найден", location);
         }
 
         private static FileSystemNodeEntity GetNodeEntity(
@@ -300,9 +300,7 @@ namespace ENB_project
                 var node = nodeMap[entity.Id];
 
                 if (entity.ParentId == null)
-                {
                     tree.Roots.Add(node);
-                }
                 else if (nodeMap.TryGetValue(entity.ParentId.Value, out var parentNode))
                 {
                     node.Parent = parentNode;
@@ -327,7 +325,7 @@ namespace ENB_project
 
         private static User MapUser(UserEntity entity, FileSystemTree tree) => new()
         {
-            Username = entity.Username,
+            Login    = entity.Login,
             Password = entity.Password,
             Email    = entity.Email,
             Theme    = entity.Theme,
@@ -338,7 +336,7 @@ namespace ENB_project
 
     public class User
     {
-        public required string Username  { get; init; }
+        public required string Login     { get; init; }
         public required string Password  { get; set; }
         public required string Email     { get; set; }
         public required string Theme     { get; set; }

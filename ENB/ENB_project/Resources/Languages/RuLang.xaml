@@ -4,6 +4,10 @@
 
     <sys:String x:Key="LanguageLabel">Язык:</sys:String>
     <sys:String x:Key="FillAllFields">Заполните все поля!</sys:String>
+    <sys:String x:Key="UserLoginMinSize">Логин должен содержать не меньше 4 символов</sys:String>
+    <sys:String x:Key="UserLoginMaxSize">Логин должен содержать не больше 25 символов</sys:String>
+    <sys:String x:Key="UserPasswordMinSize">Пароль должен содержать не меньше 8 символов</sys:String>
+    <sys:String x:Key="UserPasswordMaxSize">Пароль должен содержать не больше 30 символов</sys:String>
 
     <sys:String x:Key="LogInLoginLabel">Логин</sys:String>
     <sys:String x:Key="LogInPasswordLabel">Пароль</sys:String>
@@ -42,7 +46,7 @@
     <sys:String x:Key="MainNewFolderName">Новая папка</sys:String>
 
     <sys:String x:Key="UserMenuTitle">Профиль</sys:String>
-    <sys:String x:Key="UserMenuUsername">Имя пользователя</sys:String>
+    <sys:String x:Key="UserMenuLogin">Имя пользователя</sys:String>
     <sys:String x:Key="UserMenuPassword">Пароль</sys:String>
     <sys:String x:Key="UserMenuEmail">Email</sys:String>
     <sys:String x:Key="UserMenuTheme">Тема</sys:String>

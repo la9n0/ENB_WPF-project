@@ -4,9 +4,9 @@ namespace ENB_project
 {
     public class AppDbContext : DbContext
     {
-        public DbSet<UserEntity>            Users            { get; set; }
-        public DbSet<FileSystemNodeEntity>  FileSystemNodes  { get; set; }
-        public DbSet<NoteContentEntity>     NoteContents     { get; set; }
+        public DbSet<UserEntity>           Users           { get; set; }
+        public DbSet<FileSystemNodeEntity> FileSystemNodes { get; set; }
+        public DbSet<NoteContentEntity>    NoteContents    { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder options)
             => options.UseSqlServer(
@@ -18,9 +18,9 @@ namespace ENB_project
             {
                 e.ToTable("Users");
                 e.HasKey(u => u.Id);
-                e.HasIndex(u => u.Username).IsUnique();
-                e.Property(u => u.Username).HasMaxLength(100).IsRequired();
-                e.Property(u => u.Password).HasMaxLength(255).IsRequired();
+                e.HasIndex(u => u.Login).IsUnique();
+                e.Property(u => u.Login).HasMaxLength(25).IsRequired();
+                e.Property(u => u.Password).HasMaxLength(30).IsRequired();
                 e.Property(u => u.Email).HasMaxLength(255).IsRequired();
                 e.Property(u => u.Theme).HasMaxLength(20).IsRequired().HasDefaultValue("Dark");
                 e.Property(u => u.Language).HasMaxLength(10).IsRequired().HasDefaultValue("ru");
@@ -60,12 +60,11 @@ namespace ENB_project
             });
         }
     }
-    
-    
+
     public class UserEntity
     {
         public int    Id       { get; set; }
-        public string Username { get; set; } = string.Empty;
+        public string Login    { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
         public string Email    { get; set; } = string.Empty;
         public string Theme    { get; set; } = "Dark";
@@ -76,17 +75,17 @@ namespace ENB_project
 
     public class FileSystemNodeEntity
     {
-        public int     Id        { get; set; }
-        public int     UserId    { get; set; }
-        public int?    ParentId  { get; set; }
-        public string  Name      { get; set; } = string.Empty;
-        public string  ItemType  { get; set; } = "File";
-        public int     SortOrder { get; set; } = 0;
+        public int    Id        { get; set; }
+        public int    UserId    { get; set; }
+        public int?   ParentId  { get; set; }
+        public string Name      { get; set; } = string.Empty;
+        public string ItemType  { get; set; } = "File";
+        public int    SortOrder { get; set; } = 0;
 
-        public UserEntity           User        { get; set; } = null!;
-        public FileSystemNodeEntity? Parent      { get; set; }
-        public List<FileSystemNodeEntity> Children { get; set; } = new();
-        public NoteContentEntity?   NoteContent { get; set; }
+        public UserEntity                 User        { get; set; } = null!;
+        public FileSystemNodeEntity?      Parent      { get; set; }
+        public List<FileSystemNodeEntity> Children    { get; set; } = new();
+        public NoteContentEntity?         NoteContent { get; set; }
     }
 
     public class NoteContentEntity

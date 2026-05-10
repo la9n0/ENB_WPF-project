@@ -78,7 +78,7 @@ namespace ENB_project
             }
             catch
             {
-                // logger must not crash the application
+                // логгер не должен ломать приложение
             }
         }
 
