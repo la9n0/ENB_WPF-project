@@ -8,9 +8,6 @@ using ENB_project.Controls;
 
 namespace ENB_project
 {
-    /// <summary>
-    /// Вкладка редактора заметок. Хранит имя связанной заметки и состояние активности.
-    /// </summary>
     public class NoteTab : INotifyPropertyChanged
     {
         private string _title    = "Новая вкладка";
@@ -63,9 +60,6 @@ namespace ENB_project
             Closed += (_, _) => EnbFunctional.LanguageChanged -= OnLanguageChanged;
         }
 
-        /// <summary>
-        /// Обновляет текстовые ресурсы интерфейса при смене языка.
-        /// </summary>
         private void OnLanguageChanged(string lang)
         {
             var newTabText = (string)TryFindResource("MainNewTab") ?? "Новая вкладка";
@@ -85,19 +79,19 @@ namespace ENB_project
         {
             try
             {
-                _userList.LoadJson();
                 _user = _userList.GetUser(username)
-                        ?? throw MyExceptions.Navigation($"Пользователь «{username}» не найден", "MainWindow.LoadUser");
+                        ?? throw MyExceptions.Navigation(
+                            $"Пользователь «{username}» не найден", "MainWindow.LoadUser");
             }
             catch (MyExceptions)
             {
                 _userList.AddUser(username, "", "", "Dark", "ru");
                 _user = _userList.GetUser(username)!;
-                _userList.SaveJson();
             }
             catch (Exception ex)
             {
-                MyExceptions.Critical("Непредвиденная ошибка при загрузке пользователя", "MainWindow.LoadUser", ex);
+                MyExceptions.Critical("Непредвиденная ошибка при загрузке пользователя",
+                    "MainWindow.LoadUser", ex);
             }
 
             EnbFunctional.ApplyTheme(_user.Theme);
@@ -180,7 +174,6 @@ namespace ENB_project
 
         private void CloseUserMenu()
         {
-            _userList.LoadJson();
             _user = _userList.GetUser(_user.Username) ?? _user;
 
             _isUserMenuOpen            = false;
@@ -190,11 +183,7 @@ namespace ENB_project
             if (_activeTab?.NoteName != null)
             {
                 var node = _user.Tree.FindByName(_activeTab.NoteName);
-                if (node != null)
-                {
-                    ShowNote(node);
-                    return;
-                }
+                if (node != null) { ShowNote(node); return; }
             }
 
             ShowEmpty();
@@ -203,11 +192,7 @@ namespace ENB_project
         private NoteTab AddTab(string? noteName = null)
         {
             var newTabText = (string)TryFindResource("MainNewTab") ?? "Новая вкладка";
-            var tab = new NoteTab
-            {
-                Title    = noteName ?? newTabText,
-                NoteName = noteName
-            };
+            var tab = new NoteTab { Title = noteName ?? newTabText, NoteName = noteName };
             _tabs.Add(tab);
             ActivateTab(tab);
             return tab;
@@ -215,17 +200,11 @@ namespace ENB_project
 
         private void ActivateTab(NoteTab tab)
         {
-            if (_activeTab != null)
-                _activeTab.IsActive = false;
-
+            if (_activeTab != null) _activeTab.IsActive = false;
             _activeTab   = tab;
             tab.IsActive = true;
 
-            if (_isUserMenuOpen)
-            {
-                CloseUserMenu();
-                return;
-            }
+            if (_isUserMenuOpen) { CloseUserMenu(); return; }
 
             if (tab.NoteName != null)
             {
@@ -233,10 +212,7 @@ namespace ENB_project
                 if (node != null) ShowNote(node);
                 else ShowEmpty();
             }
-            else
-            {
-                ShowEmpty();
-            }
+            else ShowEmpty();
         }
 
         private void Tab_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -253,10 +229,6 @@ namespace ENB_project
                 CloseTab(tab);
         }
 
-        /// <summary>
-        /// Закрывает вкладку. Если вкладка была активной и открытой в режиме редактирования —
-        /// сохраняет содержимое. Если это последняя вкладка — создаёт пустую.
-        /// </summary>
         private void CloseTab(NoteTab tab)
         {
             if (tab == _activeTab && _isEditMode)
@@ -265,12 +237,7 @@ namespace ENB_project
             var idx = _tabs.IndexOf(tab);
             _tabs.Remove(tab);
 
-            if (_tabs.Count == 0)
-            {
-                AddTab();
-                return;
-            }
-
+            if (_tabs.Count == 0) { AddTab(); return; }
             if (tab == _activeTab)
                 ActivateTab(_tabs[Math.Clamp(idx, 0, _tabs.Count - 1)]);
         }
@@ -291,30 +258,22 @@ namespace ENB_project
         }
 
         /// <summary>
-        /// Открывает заметку в существующей вкладке (если она уже открыта),
-        /// иначе переиспользует текущую пустую вкладку или создаёт новую.
+        /// Открывает заметку в существующей вкладке (если уже открыта),
+        /// иначе переиспользует текущую пустую или создаёт новую.
         /// </summary>
         private void OpenNoteInTab(string noteName)
         {
             var existing = _tabs.FirstOrDefault(t => t.NoteName == noteName);
-            if (existing != null)
-            {
-                ActivateTab(existing);
-                return;
-            }
+            if (existing != null) { ActivateTab(existing); return; }
 
             if (_activeTab?.NoteName == null)
             {
                 _activeTab!.NoteName = noteName;
                 _activeTab.Title     = noteName;
-
                 var node = _user.Tree.FindByName(noteName);
                 if (node != null) ShowNote(node);
             }
-            else
-            {
-                AddTab(noteName);
-            }
+            else AddTab(noteName);
         }
 
         private void ShowNote(FileSystemNode node)
@@ -332,14 +291,12 @@ namespace ENB_project
             EditSaveBtn.Visibility     = Visibility.Visible;
             EditSaveBtn.Content        = TryFindResource("MainBtnEdit") ?? "Редактировать";
 
-            if (_activeTab != null)
-                _activeTab.Title = node.Name;
+            if (_activeTab != null) _activeTab.Title = node.Name;
         }
 
         private void ShowEmpty()
         {
             ExitEditMode(save: false);
-
             PageTitle.Text  = (string)(TryFindResource("MainNewTab") ?? "Новая вкладка");
             NoteEditor.Text = string.Empty;
 
@@ -350,10 +307,6 @@ namespace ENB_project
             EditSaveBtn.Visibility     = Visibility.Collapsed;
         }
 
-        /// <summary>
-        /// Переключает заголовок в режим редактирования только если активна заметка
-        /// и включён режим редактирования содержимого.
-        /// </summary>
         private void PageTitle_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             if (_activeTab?.NoteName == null) return;
@@ -376,10 +329,6 @@ namespace ENB_project
         private void PageTitleEdit_LostFocus(object sender, RoutedEventArgs e)
             => CommitTitleEdit();
 
-        /// <summary>
-        /// Применяет переименование заметки через заголовок: обновляет узел дерева,
-        /// все связанные вкладки, файловый менеджер и сохраняет данные.
-        /// </summary>
         private void CommitTitleEdit()
         {
             if (PageTitleEdit.Visibility != Visibility.Visible) return;
@@ -393,6 +342,7 @@ namespace ENB_project
                 if (node != null)
                 {
                     node.Name = newName;
+                    _userList.RenameNode(_user.Username, oldName, newName);
 
                     foreach (var tab in _tabs.Where(t => t.NoteName == oldName))
                     {
@@ -402,7 +352,6 @@ namespace ENB_project
 
                     PageTitle.Text = newName;
                     MyFileManager.LoadFromTree(_user.Tree);
-                    _userList.SaveJson();
                 }
             }
 
@@ -436,10 +385,6 @@ namespace ENB_project
             ExitEditMode(save: false);
         }
 
-        /// <summary>
-        /// Выходит из режима редактирования. Параметр save определяет,
-        /// нужно ли предварительно сохранить текущую заметку.
-        /// </summary>
         private void ExitEditMode(bool save)
         {
             if (save) SaveActiveNote();
@@ -461,7 +406,7 @@ namespace ENB_project
             if (node == null) return;
 
             node.Content = NoteEditor.Text;
-            _userList.SaveJson();
+            _userList.SaveNoteContent(_user.Username, _activeTab.NoteName, NoteEditor.Text);
         }
 
         private void MyFileManager_ItemMoved(
@@ -481,10 +426,10 @@ namespace ENB_project
             }
 
             _user.Tree.Move(draggedNode, targetNode);
+            _userList.MoveNode(_user.Username, draggedNode, targetNode);
 
             var currentNoteName = _activeTab?.NoteName;
             MyFileManager.LoadFromTree(_user.Tree);
-            _userList.SaveJson();
 
             if (currentNoteName != null)
             {
@@ -496,10 +441,6 @@ namespace ENB_project
         private void CreateNote()   => CreateItem(FileItemType.File);
         private void CreateFolder() => CreateItem(FileItemType.Folder);
 
-        /// <summary>
-        /// Создаёт новый узел (файл или папку) в дереве. Если выбрана папка — добавляет внутрь,
-        /// если выбран файл — добавляет рядом в том же родителе. Сразу запускает переименование.
-        /// </summary>
         private void CreateItem(FileItemType type)
         {
             var name = type == FileItemType.Folder
@@ -511,25 +452,35 @@ namespace ENB_project
 
             if (selected == null)
             {
-                newNode = _user.Tree.AddToRoot(name, type);
+                newNode = _userList.AddNodeToRoot(_user.Username, name, type);
+                _user.Tree.Roots.Add(newNode);
             }
             else if (selected.IsFolder)
             {
                 var parentNode = _user.Tree.FindByName(selected.Name)!;
-                newNode = _user.Tree.AddChild(parentNode, name, type);
+                newNode = _userList.AddNodeToFolder(_user.Username, parentNode, name, type);
+                parentNode.Children.Add(newNode);
+                newNode.Parent = parentNode;
                 MyFileManager.Expand(selected);
             }
             else
             {
                 var fileNode   = _user.Tree.FindByName(selected.Name)!;
                 var parentNode = fileNode.Parent;
-                newNode = parentNode != null
-                    ? _user.Tree.AddChild(parentNode, name, type)
-                    : _user.Tree.AddToRoot(name, type);
+                if (parentNode != null)
+                {
+                    newNode = _userList.AddNodeToFolder(_user.Username, parentNode, name, type);
+                    parentNode.Children.Add(newNode);
+                    newNode.Parent = parentNode;
+                }
+                else
+                {
+                    newNode = _userList.AddNodeToRoot(_user.Username, name, type);
+                    _user.Tree.Roots.Add(newNode);
+                }
             }
 
             MyFileManager.LoadFromTree(_user.Tree);
-            _userList.SaveJson();
 
             var createdItem = MyFileManager.FindItemByName(name);
             if (createdItem != null)
@@ -546,11 +497,8 @@ namespace ENB_project
                 selected.Name);
             var titleText = (string)(TryFindResource("MainDeleteTitle") ?? "Подтверждение");
 
-            var result = MessageBox.Show(
-                confirmText,
-                titleText,
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Question);
+            var result = MessageBox.Show(confirmText, titleText,
+                MessageBoxButton.YesNo, MessageBoxImage.Question);
 
             if (result != MessageBoxResult.Yes) return;
 
@@ -558,12 +506,12 @@ namespace ENB_project
             if (node == null) return;
 
             _user.Tree.Remove(node);
+            _userList.RemoveNode(_user.Username, node);
 
             foreach (var tab in _tabs.Where(t => t.NoteName == selected.Name).ToList())
                 CloseTab(tab);
 
             MyFileManager.LoadFromTree(_user.Tree);
-            _userList.SaveJson();
         }
 
         private void RenameSelected()
@@ -595,10 +543,6 @@ namespace ENB_project
         private void RenameBox_LostFocus(object sender, RoutedEventArgs e)
             => CommitRename();
 
-        /// <summary>
-        /// Применяет переименование из RenameBox: обновляет узел дерева, элемент файлового
-        /// менеджера, все связанные вкладки и заголовок страницы. Сохраняет данные на диск.
-        /// </summary>
         private void CommitRename()
         {
             if (RenameBox.Visibility != Visibility.Visible) return;
@@ -609,6 +553,7 @@ namespace ENB_project
 
             if (!string.IsNullOrEmpty(newName) && oldName != newName)
             {
+                _userList.RenameNode(_user.Username, oldName, newName);
                 node.Name = newName;
                 item.Name = newName;
 
@@ -620,16 +565,13 @@ namespace ENB_project
 
                 if (_activeTab?.NoteName == newName)
                     PageTitle.Text = newName;
-
-                _userList.SaveJson();
             }
 
             RenameBox.Visibility = Visibility.Collapsed;
         }
 
         /// <summary>
-        /// Отменяет переименование. Если элемент был только что создан (имя совпадает
-        /// с дефолтным) — удаляет его из дерева.
+        /// Отменяет переименование. Если узел был только что создан — удаляет его из дерева и БД.
         /// </summary>
         private void CancelRename()
         {
@@ -642,6 +584,7 @@ namespace ENB_project
                 && (item.Name == newNoteName || item.Name == newFolderName))
             {
                 _user.Tree.Remove(node);
+                _userList.RemoveNode(_user.Username, node);
                 MyFileManager.LoadFromTree(_user.Tree);
             }
         }
@@ -661,7 +604,6 @@ namespace ENB_project
         private void CloseButton_Click(object sender, RoutedEventArgs e)
         {
             SaveActiveNote();
-            _userList.SaveJson();
             Close();
         }
 

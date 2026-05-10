@@ -10,7 +10,6 @@ namespace ENB_project
         public LogIn(string lang = "ru")
         {
             InitializeComponent();
-
             _language = lang;
 
             LanguageDrop.Items.Add("Русский");
@@ -26,9 +25,7 @@ namespace ENB_project
         }
 
         private void OnLanguageChanged(string lang)
-        {
-            ErrorText.Visibility = Visibility.Collapsed;
-        }
+            => ErrorText.Visibility = Visibility.Collapsed;
 
         private void LanguageCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -50,8 +47,7 @@ namespace ENB_project
             try
             {
                 var userList = new UserList();
-                userList.LoadJson();
-                var user = userList.GetUser(login);
+                var user     = userList.GetUser(login);
 
                 if (user == null)
                 {

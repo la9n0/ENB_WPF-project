@@ -1,98 +1,32 @@
-﻿using System.IO;
-using System.Text.Json;
-using ENB_project.Controls;
+﻿using ENB_project.Controls;
+using Microsoft.EntityFrameworkCore;
 
 namespace ENB_project
 {
     /// <summary>
-    /// Репозиторий пользователей. Загружает и сохраняет список в JSON,
-    /// предоставляет методы для CRUD-операций над пользователями и их деревьями файлов.
+    /// Репозиторий пользователей и их файловых деревьев поверх Entity Framework.
     /// </summary>
     public class UserList
     {
-        private List<User> _users = [];
-        private readonly string _path;
-
-        private static readonly JsonSerializerOptions _jsonOptions = new()
-        {
-            WriteIndented = true,
-        };
-
-        public UserList()
-        {
-            var basePath = AppContext.BaseDirectory;
-            _path = Path.Combine(basePath, "app_data", "userList.json");
-        }
-
-        public void SaveJson()
-        {
-            try
-            {
-                var dir = Path.GetDirectoryName(_path);
-                if (!Directory.Exists(dir))
-                    Directory.CreateDirectory(dir);
-
-                var json = JsonSerializer.Serialize(_users, _jsonOptions);
-                File.WriteAllText(_path, json);
-            }
-            catch (Exception ex)
-            {
-                throw MyExceptions.IO("Не удалось сохранить данные пользователей", "UserList.SaveJson", ex);
-            }
-        }
-
-        /// <summary>
-        /// Загружает список пользователей из JSON и восстанавливает Parent-ссылки
-        /// в деревьях файлов (они не сериализуются).
-        /// </summary>
-        public void LoadJson()
-        {
-            try
-            {
-                var json     = File.ReadAllText(_path);
-                var restored = JsonSerializer.Deserialize<List<User>>(json, _jsonOptions);
-
-                _users = restored ?? throw MyExceptions.Data("Список пользователей пуст", "UserList.LoadJson");
-
-                foreach (var user in _users)
-                    RestoreParents(user.Tree.Roots, parent: null);
-            }
-            catch (FileNotFoundException ex)
-            {
-                throw MyExceptions.IO("Файл данных не найден", "UserList.LoadJson", ex);
-            }
-            catch (JsonException ex)
-            {
-                throw MyExceptions.Data("Некорректный формат JSON", "UserList.LoadJson", ex);
-            }
-        }
-
-        /// <summary>
-        /// Рекурсивно восстанавливает поле Parent у всех узлов дерева после десериализации.
-        /// </summary>
-        private static void RestoreParents(
-            IEnumerable<FileSystemNode> nodes, FileSystemNode? parent)
-        {
-            foreach (var node in nodes)
-            {
-                node.Parent = parent;
-                RestoreParents(node.Children, node);
-            }
-        }
-
         public User? GetUser(string username)
-            => _users.Find(u => u?.Username == username);
+        {
+            using var db = new AppDbContext();
+            var entity = db.Users
+                .AsNoTracking()
+                .FirstOrDefault(u => u.Username == username);
 
-        /// <summary>
-        /// Добавляет нового пользователя. Возвращает false, если имя уже занято.
-        /// </summary>
+            return entity == null ? null : MapUser(entity, LoadTree(entity.Id));
+        }
+
         public bool AddUser(string username, string password,
             string email, string theme, string language)
         {
-            if (_users.Any(u => u?.Username == username))
+            using var db = new AppDbContext();
+
+            if (db.Users.Any(u => u.Username == username))
                 return false;
 
-            _users.Add(new User
+            db.Users.Add(new UserEntity
             {
                 Username = username,
                 Password = password,
@@ -100,83 +34,308 @@ namespace ENB_project
                 Theme    = theme,
                 Language = language
             });
+            db.SaveChanges();
             return true;
         }
 
-        public void DelUser(string name)
+        public void DelUser(string username)
         {
-            var user = _users.Find(u => u.Username == name);
-            if (user != null)
-                _users.Remove(user);
+            using var db = new AppDbContext();
+            var entity = db.Users.FirstOrDefault(u => u.Username == username);
+            if (entity == null) return;
+            db.Users.Remove(entity);
+            db.SaveChanges();
         }
 
-        public bool EditUser(string name, string changedPropertyName, string changed)
+        public bool EditUser(string username, string propertyName, string value)
         {
-            if (GetUser(name) == null) return false;
-            var index = _users.IndexOf(_users.FirstOrDefault(x => x.Username == name));
+            using var db = new AppDbContext();
+            var entity = db.Users.FirstOrDefault(u => u.Username == username);
+            if (entity == null) return false;
 
-            switch (changedPropertyName)
+            switch (propertyName)
             {
-                case nameof(User.Password): _users[index].Password = changed; break;
-                case nameof(User.Email):    _users[index].Email    = changed; break;
-                case nameof(User.Theme):    _users[index].Theme    = changed; break;
-                case nameof(User.Language): _users[index].Language = changed; break;
+                case nameof(User.Password): entity.Password = value; break;
+                case nameof(User.Email):    entity.Email    = value; break;
+                case nameof(User.Theme):    entity.Theme    = value; break;
+                case nameof(User.Language): entity.Language = value; break;
                 default: return false;
             }
+
+            db.SaveChanges();
             return true;
         }
 
         public FileSystemTree GetTree(string username)
-            => GetUser(username)?.Tree
-               ?? throw MyExceptions.Navigation($"Пользователь «{username}» не найден", "UserList.GetTree");
+        {
+            var entity = GetUserEntity(username, "UserList.GetTree");
+            return LoadTree(entity.Id);
+        }
 
         public FileSystemNode AddNodeToRoot(string username, string nodeName,
             FileItemType type = FileItemType.File)
-            => GetUser(username)?.Tree.AddToRoot(nodeName, type)
-               ?? throw MyExceptions.Navigation($"Пользователь «{username}» не найден", "UserList.AddNodeToRoot");
+        {
+            var entity    = GetUserEntity(username, "UserList.AddNodeToRoot");
+            var sortOrder = CountRoots(entity.Id);
+            return CreateNode(entity.Id, null, nodeName, type, sortOrder);
+        }
 
         public FileSystemNode AddNodeToFolder(string username,
             FileSystemNode parent, string nodeName,
             FileItemType type = FileItemType.File)
-            => GetUser(username)?.Tree.AddChild(parent, nodeName, type)
-               ?? throw MyExceptions.Navigation($"Пользователь «{username}» не найден", "UserList.AddNodeToFolder");
+        {
+            var entity    = GetUserEntity(username, "UserList.AddNodeToFolder");
+            var parentDb  = GetNodeEntity(parent.Name, entity.Id, "UserList.AddNodeToFolder");
+            var sortOrder = parentDb.Children.Count;
+            return CreateNode(entity.Id, parentDb.Id, nodeName, type, sortOrder);
+        }
 
         public FileSystemNode InsertNode(string username,
             FileSystemNode parent, int index, string nodeName,
             FileItemType type = FileItemType.File)
-            => GetUser(username)?.Tree.InsertChild(parent, index, nodeName, type)
-               ?? throw MyExceptions.Navigation($"Пользователь «{username}» не найден", "UserList.InsertNode");
+        {
+            var entity   = GetUserEntity(username, "UserList.InsertNode");
+            var parentDb = GetNodeEntity(parent.Name, entity.Id, "UserList.InsertNode");
+            return CreateNode(entity.Id, parentDb.Id, nodeName, type, index);
+        }
 
         public bool RemoveNode(string username, FileSystemNode node)
         {
-            var user = GetUser(username)
-                ?? throw MyExceptions.Navigation($"Пользователь «{username}» не найден", "UserList.RemoveNode");
-            return user.Tree.Remove(node);
+            var entity = GetUserEntity(username, "UserList.RemoveNode");
+            using var db = new AppDbContext();
+
+            var nodeDb = db.FileSystemNodes
+                .Include(n => n.Children)
+                .FirstOrDefault(n => n.Name == node.Name && n.UserId == entity.Id);
+
+            if (nodeDb == null) return false;
+
+            DeleteNodeRecursive(db, nodeDb);
+            db.SaveChanges();
+            return true;
         }
 
-        public void MoveNode(string username,
-            FileSystemNode node, FileSystemNode? newParent)
+        public void MoveNode(string username, FileSystemNode node, FileSystemNode? newParent)
         {
-            var user = GetUser(username)
-                ?? throw MyExceptions.Navigation($"Пользователь «{username}» не найден", "UserList.MoveNode");
-            user.Tree.Move(node, newParent);
+            var entity = GetUserEntity(username, "UserList.MoveNode");
+            using var db = new AppDbContext();
+
+            var nodeDb = db.FileSystemNodes
+                .FirstOrDefault(n => n.Name == node.Name && n.UserId == entity.Id)
+                ?? throw MyExceptions.Navigation(
+                    $"Узел «{node.Name}» не найден", "UserList.MoveNode");
+
+            if (newParent == null)
+            {
+                nodeDb.ParentId  = null;
+                nodeDb.SortOrder = CountRoots(entity.Id);
+            }
+            else
+            {
+                var parentDb = db.FileSystemNodes
+                    .FirstOrDefault(n => n.Name == newParent.Name && n.UserId == entity.Id)
+                    ?? throw MyExceptions.Navigation(
+                        $"Узел «{newParent.Name}» не найден", "UserList.MoveNode");
+
+                nodeDb.ParentId  = parentDb.Id;
+                nodeDb.SortOrder = db.FileSystemNodes.Count(n => n.ParentId == parentDb.Id);
+            }
+
+            db.SaveChanges();
         }
 
         public FileSystemNode? FindNode(string username, string nodeName)
-            => GetUser(username)?.Tree.FindByName(nodeName)
-               ?? throw MyExceptions.Navigation($"Пользователь «{username}» не найден", "UserList.FindNode");
+        {
+            var entity = GetUserEntity(username, "UserList.FindNode");
+            using var db = new AppDbContext();
+
+            var nodeDb = db.FileSystemNodes
+                .AsNoTracking()
+                .FirstOrDefault(n => n.Name == nodeName && n.UserId == entity.Id);
+
+            if (nodeDb == null) return null;
+
+            var content = db.NoteContents
+                .AsNoTracking()
+                .FirstOrDefault(c => c.NodeId == nodeDb.Id)?.Content;
+
+            return new FileSystemNode(nodeDb.Name,
+                nodeDb.ItemType == "Folder" ? FileItemType.Folder : FileItemType.File)
+            {
+                Content = content
+            };
+        }
 
         public void ClearTree(string username)
         {
-            var user = GetUser(username)
-                ?? throw MyExceptions.Navigation($"Пользователь «{username}» не найден", "UserList.ClearTree");
-            user.Tree.Clear();
+            var entity = GetUserEntity(username, "UserList.ClearTree");
+            using var db = new AppDbContext();
+
+            var roots = db.FileSystemNodes
+                .Where(n => n.UserId == entity.Id && n.ParentId == null)
+                .ToList();
+
+            foreach (var root in roots)
+                DeleteNodeRecursive(db, root);
+
+            db.SaveChanges();
         }
+
+        /// <summary>
+        /// Сохраняет текст заметки. Создаёт запись NoteContent, если её ещё нет.
+        /// </summary>
+        public void SaveNoteContent(string username, string nodeName, string content)
+        {
+            var entity = GetUserEntity(username, "UserList.SaveNoteContent");
+            using var db = new AppDbContext();
+
+            var nodeDb = db.FileSystemNodes
+                .Include(n => n.NoteContent)
+                .FirstOrDefault(n => n.Name == nodeName && n.UserId == entity.Id);
+
+            if (nodeDb == null) return;
+
+            if (nodeDb.NoteContent == null)
+                nodeDb.NoteContent = new NoteContentEntity { NodeId = nodeDb.Id, Content = content };
+            else
+                nodeDb.NoteContent.Content = content;
+
+            db.SaveChanges();
+        }
+
+        public void RenameNode(string username, string oldName, string newName)
+        {
+            var entity = GetUserEntity(username, "UserList.RenameNode");
+            using var db = new AppDbContext();
+
+            var nodeDb = db.FileSystemNodes
+                .FirstOrDefault(n => n.Name == oldName && n.UserId == entity.Id);
+
+            if (nodeDb == null) return;
+
+            nodeDb.Name = newName;
+            db.SaveChanges();
+        }
+
+        private static UserEntity GetUserEntity(string username, string location)
+        {
+            using var db = new AppDbContext();
+            return db.Users.AsNoTracking().FirstOrDefault(u => u.Username == username)
+                ?? throw MyExceptions.Navigation(
+                    $"Пользователь «{username}» не найден", location);
+        }
+
+        private static FileSystemNodeEntity GetNodeEntity(
+            string name, int userId, string location)
+        {
+            using var db = new AppDbContext();
+            return db.FileSystemNodes
+                .Include(n => n.Children)
+                .FirstOrDefault(n => n.Name == name && n.UserId == userId)
+                ?? throw MyExceptions.Navigation($"Узел «{name}» не найден", location);
+        }
+
+        private static int CountRoots(int userId)
+        {
+            using var db = new AppDbContext();
+            return db.FileSystemNodes.Count(n => n.UserId == userId && n.ParentId == null);
+        }
+
+        private static FileSystemNode CreateNode(
+            int userId, int? parentId, string name, FileItemType type, int sortOrder)
+        {
+            using var db = new AppDbContext();
+
+            var entity = new FileSystemNodeEntity
+            {
+                UserId    = userId,
+                ParentId  = parentId,
+                Name      = name,
+                ItemType  = type == FileItemType.Folder ? "Folder" : "File",
+                SortOrder = sortOrder
+            };
+
+            db.FileSystemNodes.Add(entity);
+
+            if (type == FileItemType.File)
+                entity.NoteContent = new NoteContentEntity { Content = "" };
+
+            db.SaveChanges();
+
+            return new FileSystemNode(name, type);
+        }
+
+        /// <summary>
+        /// Строит FileSystemTree из БД, восстанавливая Parent-ссылки в памяти.
+        /// Контент заметок загружается сразу одним запросом.
+        /// </summary>
+        private static FileSystemTree LoadTree(int userId)
+        {
+            using var db = new AppDbContext();
+
+            var allNodes = db.FileSystemNodes
+                .AsNoTracking()
+                .Where(n => n.UserId == userId)
+                .OrderBy(n => n.SortOrder)
+                .ToList();
+
+            var nodeIds    = allNodes.Select(n => n.Id).ToList();
+            var contentMap = db.NoteContents
+                .AsNoTracking()
+                .Where(c => nodeIds.Contains(c.NodeId))
+                .ToDictionary(c => c.NodeId, c => c.Content);
+
+            var nodeMap = allNodes.ToDictionary(
+                n => n.Id,
+                n => new FileSystemNode(n.Name,
+                    n.ItemType == "Folder" ? FileItemType.Folder : FileItemType.File)
+                {
+                    Content = contentMap.GetValueOrDefault(n.Id)
+                });
+
+            var tree = new FileSystemTree();
+
+            foreach (var entity in allNodes)
+            {
+                var node = nodeMap[entity.Id];
+
+                if (entity.ParentId == null)
+                {
+                    tree.Roots.Add(node);
+                }
+                else if (nodeMap.TryGetValue(entity.ParentId.Value, out var parentNode))
+                {
+                    node.Parent = parentNode;
+                    parentNode.Children.Add(node);
+                }
+            }
+
+            return tree;
+        }
+
+        private static void DeleteNodeRecursive(AppDbContext db, FileSystemNodeEntity node)
+        {
+            var children = db.FileSystemNodes
+                .Where(n => n.ParentId == node.Id)
+                .ToList();
+
+            foreach (var child in children)
+                DeleteNodeRecursive(db, child);
+
+            db.FileSystemNodes.Remove(node);
+        }
+
+        private static User MapUser(UserEntity entity, FileSystemTree tree) => new()
+        {
+            Username = entity.Username,
+            Password = entity.Password,
+            Email    = entity.Email,
+            Theme    = entity.Theme,
+            Language = entity.Language,
+            Tree     = tree
+        };
     }
 
-    /// <summary>
-    /// Модель пользователя. Хранит учётные данные, настройки и дерево файлов.
-    /// </summary>
     public class User
     {
         public required string Username  { get; init; }

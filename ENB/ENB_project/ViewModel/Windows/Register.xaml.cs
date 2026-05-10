@@ -35,14 +35,11 @@ namespace ENB_project
         }
 
         private void OnlyText(object sender, TextCompositionEventArgs e)
-        {
-            e.Handled = !Regex.IsMatch(e.Text, @"^[a-zA-Z0-9.@]+$");
-        }
+            => e.Handled = !Regex.IsMatch(e.Text, @"^[a-zA-Z0-9.@]+$");
 
         private void EmailCheck(object sender, RoutedEventArgs e)
         {
             EmailError.Visibility = Visibility.Hidden;
-
             var email = ((TextBox)sender).Text;
 
             if (email.Count(c => c == '@') != 1)
@@ -85,7 +82,6 @@ namespace ENB_project
             }
 
             var list = new UserList();
-            list.LoadJson();
 
             if (!list.AddUser(UsernameBox.Text, PasswordBox1.Password,
                     EmailBox.Text, "Dark", _language))
@@ -93,8 +89,6 @@ namespace ENB_project
                 MessageBox.Show((string)FindResource("RegisterAlreadyExists"));
                 return;
             }
-
-            list.SaveJson();
 
             EnbFunctional.ApplyTheme("Dark");
             new MainWindow(UsernameBox.Text).Show();

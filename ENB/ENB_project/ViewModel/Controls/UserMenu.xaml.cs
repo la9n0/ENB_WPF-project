@@ -27,12 +27,7 @@ namespace ENB_project.Controls
         {
             try
             {
-                _userList.LoadJson();
                 _user = _userList.GetUser(_username);
-            }
-            catch (MyExceptions)
-            {
-                _user = null;
             }
             catch (Exception ex)
             {
@@ -110,7 +105,6 @@ namespace ENB_project.Controls
             }
 
             _userList.EditUser(_username, nameof(User.Password), next);
-            _userList.SaveJson();
             _user = _userList.GetUser(_username);
 
             PasswordDialog.Visibility  = Visibility.Collapsed;
@@ -135,10 +129,7 @@ namespace ENB_project.Controls
                 EmailBox.Focus();
                 EmailBox.SelectAll();
             }
-            else
-            {
-                CommitEmail();
-            }
+            else CommitEmail();
         }
 
         private void CommitEmail()
@@ -160,7 +151,6 @@ namespace ENB_project.Controls
             }
 
             _userList.EditUser(_username, nameof(User.Email), EmailBox.Text.Trim());
-            _userList.SaveJson();
             _user = _userList.GetUser(_username);
 
             EmailBox.IsReadOnly  = true;
@@ -176,7 +166,6 @@ namespace ENB_project.Controls
 
             _userList.EditUser(_username, nameof(User.Theme),    theme);
             _userList.EditUser(_username, nameof(User.Language), language);
-            _userList.SaveJson();
 
             EnbFunctional.ApplyTheme(theme);
             EnbFunctional.ApplyLanguage(language);
@@ -191,7 +180,6 @@ namespace ENB_project.Controls
         private void EmailCheck(object sender, RoutedEventArgs e)
         {
             EmailError.Visibility = Visibility.Hidden;
-
             var email = ((TextBox)sender).Text;
 
             if (email.Count(c => c == '@') != 1)

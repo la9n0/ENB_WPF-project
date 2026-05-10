@@ -1,14 +1,7 @@
 ﻿using ENB_project.Controls;
-using System.Text.Json.Serialization;
 
 namespace ENB_project
 {
-
-    
-    /// <summary>
-    /// Узел дерева файловой системы. Может быть папкой или файлом-заметкой.
-    /// Содержит дочерние узлы и ссылку на родителя (не сериализуется).
-    /// </summary>
     public class FileSystemNode
     {
         private string _name = string.Empty;
@@ -21,20 +14,12 @@ namespace ENB_project
 
         public FileItemType ItemType { get; set; } = FileItemType.File;
 
-        [JsonIgnore]
         public bool IsFolder => ItemType == FileItemType.Folder;
 
-        /// <summary>
-        /// Текстовое содержимое заметки. Заполняется только для файловых узлов.
-        /// </summary>
         public string? Content { get; set; }
 
         public List<FileSystemNode> Children { get; set; } = new();
 
-        /// <summary>
-        /// Не сериализуется — восстанавливается вручную через RestoreParents после загрузки.
-        /// </summary>
-        [JsonIgnore]
         public FileSystemNode? Parent { get; internal set; }
 
         public FileSystemNode() { }
@@ -49,6 +34,7 @@ namespace ENB_project
     /// <summary>
     /// Дерево файловой системы пользователя. Управляет корневыми узлами и предоставляет
     /// методы для добавления, удаления, перемещения и обхода узлов.
+    /// Является in-memory представлением — все изменения дополнительно персистируются через UserList.
     /// </summary>
     public class FileSystemTree
     {
@@ -124,10 +110,6 @@ namespace ENB_project
             }
         }
 
-        /// <summary>
-        /// Перемещает узел к новому родителю. Если newParent == null — переносит в корень.
-        /// Бросает исключение, если newParent не является папкой.
-        /// </summary>
         public void Move(FileSystemNode node, FileSystemNode? newParent)
         {
             Remove(node);
@@ -166,8 +148,7 @@ namespace ENB_project
         }
 
         /// <summary>
-        /// Обходит всё дерево в глубину и вызывает action для каждого узла.
-        /// Второй параметр action — глубина узла (0 для корневых).
+        /// Обходит всё дерево в глубину. Второй параметр action — глубина узла (0 для корневых).
         /// </summary>
         public void Traverse(Action<FileSystemNode, int> action)
             => TraverseRecursive(Roots, action, depth: 0);
