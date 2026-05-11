@@ -72,5 +72,15 @@
 
     <sys:String x:Key="SearchPlaceholder">Search notes...</sys:String>
     <sys:String x:Key="SearchFound">Found: {0}</sys:String>
+    
+    <sys:String x:Key="MainBtnCategory">Category</sys:String>
+    <sys:String x:Key="CategoryPickerTitle">Note category</sys:String>
+    <sys:String x:Key="CategoryPickerNone">No category</sys:String>
+    <sys:String x:Key="CategoryPickerName">Name</sys:String>
+    <sys:String x:Key="CategoryPickerColor">Color</sys:String>
+    <sys:String x:Key="CategoryPickerAdd">+ Create category</sys:String>
+    <sys:String x:Key="CategoryPickerSave">Save</sys:String>
+    <sys:String x:Key="CategoryPickerCancel">Cancel</sys:String>
+    <sys:String x:Key="CategoryPickerClose">Close</sys:String>
 
 </ResourceDictionary>

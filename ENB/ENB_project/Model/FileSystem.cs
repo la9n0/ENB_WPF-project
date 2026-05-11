@@ -16,7 +16,9 @@ namespace ENB_project
 
         public bool IsFolder => ItemType == FileItemType.Folder;
 
-        public string? Content { get; set; }
+        public string? Content       { get; set; }
+        public int?    CategoryId    { get; set; }
+        public string? CategoryColor { get; set; }
 
         public List<FileSystemNode> Children { get; set; } = new();
 

@@ -9,18 +9,15 @@ using System.Windows.Media;
 
 namespace ENB_project.Controls
 {
-    public enum FileItemType
-    {
-        Folder,
-        File
-    }
+    public enum FileItemType { Folder, File }
 
     public class FileManagerItem : INotifyPropertyChanged
     {
-        private string _name       = string.Empty;
-        private bool   _isExpanded = false;
-        private bool   _isSelected = false;
-        private bool   _isDragOver = false;
+        private string  _name          = string.Empty;
+        private bool    _isExpanded    = false;
+        private bool    _isSelected    = false;
+        private bool    _isDragOver    = false;
+        private string? _categoryColor = null;
         private FileItemType _itemType = FileItemType.File;
 
         public string Name
@@ -55,6 +52,37 @@ namespace ENB_project.Controls
             set { _isDragOver = value; OnPropertyChanged(); }
         }
 
+        /// <summary>
+        /// HEX-цвет категории (#RRGGBB) или null если категории нет.
+        /// </summary>
+        public string? CategoryColor
+        {
+            get => _categoryColor;
+            set
+            {
+                _categoryColor = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(CategoryBrush));
+                OnPropertyChanged(nameof(HasCategory));
+            }
+        }
+
+        public bool HasCategory => _categoryColor != null;
+
+        public SolidColorBrush? CategoryBrush
+        {
+            get
+            {
+                if (_categoryColor == null) return null;
+                try
+                {
+                    var color = (Color)ColorConverter.ConvertFromString(_categoryColor);
+                    return new SolidColorBrush(color);
+                }
+                catch { return null; }
+            }
+        }
+
         public ObservableCollection<FileManagerItem> Children { get; set; } = new();
 
         public FileManagerItem() { }
@@ -75,10 +103,10 @@ namespace ENB_project.Controls
     {
         private const int IndentStep = 15;
 
-        public FileManagerItem Item      { get; }
-        public int             Depth     { get; }
+        public FileManagerItem Item       { get; }
+        public int             Depth      { get; }
         public double          IndentWidth => Depth * IndentStep;
-        public int             FlatIndex { get; set; }
+        public int             FlatIndex  { get; set; }
 
         public FileManagerFlatItem(FileManagerItem item, int depth, int flatIndex = 0)
         {
@@ -94,9 +122,8 @@ namespace ENB_project.Controls
         public int             SelectedIndex { get; }
 
         public FileManagerItemSelectedEventArgs(
-            RoutedEvent routedEvent,
-            FileManagerItem item,
-            int selectedIndex) : base(routedEvent)
+            RoutedEvent routedEvent, FileManagerItem item, int selectedIndex)
+            : base(routedEvent)
         {
             Item          = item;
             SelectedIndex = selectedIndex;
@@ -109,9 +136,8 @@ namespace ENB_project.Controls
         public FileManagerItem? Target  { get; }
 
         public FileManagerItemMovedEventArgs(
-            RoutedEvent routedEvent,
-            FileManagerItem dragged,
-            FileManagerItem? target) : base(routedEvent)
+            RoutedEvent routedEvent, FileManagerItem dragged, FileManagerItem? target)
+            : base(routedEvent)
         {
             Dragged = dragged;
             Target  = target;
@@ -121,10 +147,8 @@ namespace ENB_project.Controls
     public partial class FileManager : UserControl
     {
         public static readonly DependencyProperty ItemsProperty =
-            DependencyProperty.Register(
-                nameof(Items),
-                typeof(ObservableCollection<FileManagerItem>),
-                typeof(FileManager),
+            DependencyProperty.Register(nameof(Items),
+                typeof(ObservableCollection<FileManagerItem>), typeof(FileManager),
                 new PropertyMetadata(null, OnItemsChanged));
 
         public ObservableCollection<FileManagerItem> Items
@@ -134,11 +158,8 @@ namespace ENB_project.Controls
         }
 
         public static readonly DependencyProperty SelectedIndexProperty =
-            DependencyProperty.Register(
-                nameof(SelectedIndex),
-                typeof(int),
-                typeof(FileManager),
-                new PropertyMetadata(-1));
+            DependencyProperty.Register(nameof(SelectedIndex),
+                typeof(int), typeof(FileManager), new PropertyMetadata(-1));
 
         public int SelectedIndex
         {
@@ -147,11 +168,8 @@ namespace ENB_project.Controls
         }
 
         public static readonly DependencyProperty SelectedItemProperty =
-            DependencyProperty.Register(
-                nameof(SelectedItem),
-                typeof(FileManagerItem),
-                typeof(FileManager),
-                new PropertyMetadata(null));
+            DependencyProperty.Register(nameof(SelectedItem),
+                typeof(FileManagerItem), typeof(FileManager), new PropertyMetadata(null));
 
         public FileManagerItem? SelectedItem
         {
@@ -160,11 +178,8 @@ namespace ENB_project.Controls
         }
 
         public static readonly RoutedEvent ItemSelectedEvent =
-            EventManager.RegisterRoutedEvent(
-                nameof(ItemSelected),
-                RoutingStrategy.Bubble,
-                typeof(EventHandler<FileManagerItemSelectedEventArgs>),
-                typeof(FileManager));
+            EventManager.RegisterRoutedEvent(nameof(ItemSelected), RoutingStrategy.Bubble,
+                typeof(EventHandler<FileManagerItemSelectedEventArgs>), typeof(FileManager));
 
         public event EventHandler<FileManagerItemSelectedEventArgs> ItemSelected
         {
@@ -173,11 +188,8 @@ namespace ENB_project.Controls
         }
 
         public static readonly RoutedEvent ItemMovedEvent =
-            EventManager.RegisterRoutedEvent(
-                nameof(ItemMoved),
-                RoutingStrategy.Bubble,
-                typeof(EventHandler<FileManagerItemMovedEventArgs>),
-                typeof(FileManager));
+            EventManager.RegisterRoutedEvent(nameof(ItemMoved), RoutingStrategy.Bubble,
+                typeof(EventHandler<FileManagerItemMovedEventArgs>), typeof(FileManager));
 
         public event EventHandler<FileManagerItemMovedEventArgs> ItemMoved
         {
@@ -186,15 +198,12 @@ namespace ENB_project.Controls
         }
 
         private FileManagerItem? _dragItem;
-        private Point _dragStartPoint;
+        private Point            _dragStartPoint;
 
         public ObservableCollection<FileManagerFlatItem> FlatItems { get; }
             = new ObservableCollection<FileManagerFlatItem>();
 
-        public FileManager()
-        {
-            InitializeComponent();
-        }
+        public FileManager() => InitializeComponent();
 
         private static void OnItemsChanged(
             DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -211,14 +220,12 @@ namespace ENB_project.Controls
         }
 
         private void OnRootCollectionChanged(
-            object? sender, NotifyCollectionChangedEventArgs e)
-            => RebuildFlatList();
+            object? sender, NotifyCollectionChangedEventArgs e) => RebuildFlatList();
 
         private void RebuildFlatList()
         {
             FlatItems.Clear();
             if (Items == null) return;
-
             int index = 0;
             AppendItems(Items, depth: 0, ref index);
         }
@@ -246,8 +253,7 @@ namespace ENB_project.Controls
 
             var item = flatItem.Item;
 
-            if (SelectedItem != null)
-                SelectedItem.IsSelected = false;
+            if (SelectedItem != null) SelectedItem.IsSelected = false;
 
             item.IsSelected = true;
             SelectedItem    = item;
@@ -260,10 +266,7 @@ namespace ENB_project.Controls
             }
 
             RaiseEvent(new FileManagerItemSelectedEventArgs(
-                ItemSelectedEvent, item, SelectedIndex)
-            {
-                Source = this
-            });
+                ItemSelectedEvent, item, SelectedIndex) { Source = this });
 
             e.Handled = true;
         }
@@ -330,10 +333,7 @@ namespace ENB_project.Controls
             if (dragged == flatItem.Item) return;
 
             RaiseEvent(new FileManagerItemMovedEventArgs(
-                ItemMovedEvent, dragged, flatItem.Item)
-            {
-                Source = this
-            });
+                ItemMovedEvent, dragged, flatItem.Item) { Source = this });
 
             e.Handled = true;
         }
@@ -348,10 +348,8 @@ namespace ENB_project.Controls
 
             var dragged = (FileManagerItem)e.Data.GetData("FileManagerItem");
 
-            RaiseEvent(new FileManagerItemMovedEventArgs(ItemMovedEvent, dragged, null)
-            {
-                Source = this
-            });
+            RaiseEvent(new FileManagerItemMovedEventArgs(
+                ItemMovedEvent, dragged, null) { Source = this });
 
             e.Handled = true;
         }
@@ -409,7 +407,10 @@ namespace ENB_project.Controls
 
         private static FileManagerItem ConvertNode(FileSystemNode node)
         {
-            var item = new FileManagerItem(node.Name, node.ItemType);
+            var item = new FileManagerItem(node.Name, node.ItemType)
+            {
+                CategoryColor = node.CategoryColor
+            };
 
             foreach (var child in node.Children)
                 item.Children.Add(ConvertNode(child));

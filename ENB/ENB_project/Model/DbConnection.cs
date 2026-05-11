@@ -7,6 +7,7 @@ namespace ENB_project
         public DbSet<UserEntity>           Users           { get; set; }
         public DbSet<FileSystemNodeEntity> FileSystemNodes { get; set; }
         public DbSet<NoteContentEntity>    NoteContents    { get; set; }
+        public DbSet<CategoryEntity>       Categories      { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder options)
             => options.UseSqlServer(
@@ -44,6 +45,12 @@ namespace ENB_project
                  .HasForeignKey(n => n.ParentId)
                  .OnDelete(DeleteBehavior.NoAction)
                  .IsRequired(false);
+
+                e.HasOne(n => n.Category)
+                 .WithMany(c => c.Nodes)
+                 .HasForeignKey(n => n.CategoryId)
+                 .OnDelete(DeleteBehavior.SetNull)
+                 .IsRequired(false);
             });
 
             modelBuilder.Entity<NoteContentEntity>(e =>
@@ -58,6 +65,19 @@ namespace ENB_project
                  .HasForeignKey<NoteContentEntity>(c => c.NodeId)
                  .OnDelete(DeleteBehavior.Cascade);
             });
+
+            modelBuilder.Entity<CategoryEntity>(e =>
+            {
+                e.ToTable("Categories");
+                e.HasKey(c => c.Id);
+                e.Property(c => c.Name).HasMaxLength(50).IsRequired();
+                e.Property(c => c.Color).HasMaxLength(7).IsRequired().HasDefaultValue("#7C6FCD");
+
+                e.HasOne(c => c.User)
+                 .WithMany(u => u.Categories)
+                 .HasForeignKey(c => c.UserId)
+                 .OnDelete(DeleteBehavior.Cascade);
+            });
         }
     }
 
@@ -70,22 +90,25 @@ namespace ENB_project
         public string Theme    { get; set; } = "Dark";
         public string Language { get; set; } = "ru";
 
-        public List<FileSystemNodeEntity> Nodes { get; set; } = new();
+        public List<FileSystemNodeEntity> Nodes      { get; set; } = new();
+        public List<CategoryEntity>       Categories { get; set; } = new();
     }
 
     public class FileSystemNodeEntity
     {
-        public int    Id        { get; set; }
-        public int    UserId    { get; set; }
-        public int?   ParentId  { get; set; }
-        public string Name      { get; set; } = string.Empty;
-        public string ItemType  { get; set; } = "File";
-        public int    SortOrder { get; set; } = 0;
+        public int    Id         { get; set; }
+        public int    UserId     { get; set; }
+        public int?   ParentId   { get; set; }
+        public int?   CategoryId { get; set; }
+        public string Name       { get; set; } = string.Empty;
+        public string ItemType   { get; set; } = "File";
+        public int    SortOrder  { get; set; } = 0;
 
         public UserEntity                 User        { get; set; } = null!;
         public FileSystemNodeEntity?      Parent      { get; set; }
         public List<FileSystemNodeEntity> Children    { get; set; } = new();
         public NoteContentEntity?         NoteContent { get; set; }
+        public CategoryEntity?            Category    { get; set; }
     }
 
     public class NoteContentEntity
@@ -95,5 +118,16 @@ namespace ENB_project
         public string Content { get; set; } = string.Empty;
 
         public FileSystemNodeEntity Node { get; set; } = null!;
+    }
+
+    public class CategoryEntity
+    {
+        public int    Id     { get; set; }
+        public int    UserId { get; set; }
+        public string Name   { get; set; } = string.Empty;
+        public string Color  { get; set; } = "#7C6FCD";
+
+        public UserEntity                 User  { get; set; } = null!;
+        public List<FileSystemNodeEntity> Nodes { get; set; } = new();
     }
 }

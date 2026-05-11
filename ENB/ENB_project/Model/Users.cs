@@ -66,6 +66,8 @@ namespace ENB_project
             return true;
         }
 
+        // ─── Дерево ──────────────────────────────────────────────────────────
+
         public FileSystemTree GetTree(string login)
         {
             var entity = GetUserEntity(login, "UserList.GetTree");
@@ -151,6 +153,7 @@ namespace ENB_project
 
             var nodeDb = db.FileSystemNodes
                 .AsNoTracking()
+                .Include(n => n.Category)
                 .FirstOrDefault(n => n.Name == nodeName && n.UserId == entity.Id);
 
             if (nodeDb == null) return null;
@@ -162,7 +165,9 @@ namespace ENB_project
             return new FileSystemNode(nodeDb.Name,
                 nodeDb.ItemType == "Folder" ? FileItemType.Folder : FileItemType.File)
             {
-                Content = content
+                Content    = content,
+                CategoryId = nodeDb.CategoryId,
+                CategoryColor = nodeDb.Category?.Color
             };
         }
 
@@ -217,6 +222,75 @@ namespace ENB_project
             db.SaveChanges();
         }
 
+        /// <summary>
+        /// Устанавливает категорию заметки. Передай null для снятия категории.
+        /// </summary>
+        public void SetNodeCategory(string login, string nodeName, int? categoryId)
+        {
+            var entity   = GetUserEntity(login, "UserList.SetNodeCategory");
+            using var db = new AppDbContext();
+
+            var nodeDb = db.FileSystemNodes
+                .FirstOrDefault(n => n.Name == nodeName && n.UserId == entity.Id);
+
+            if (nodeDb == null) return;
+
+            nodeDb.CategoryId = categoryId;
+            db.SaveChanges();
+        }
+
+        // ─── Категории ────────────────────────────────────────────────────────
+
+        public List<Category> GetCategories(string login)
+        {
+            var entity = GetUserEntity(login, "UserList.GetCategories");
+            using var db = new AppDbContext();
+
+            return db.Categories
+                .AsNoTracking()
+                .Where(c => c.UserId == entity.Id)
+                .OrderBy(c => c.Name)
+                .Select(c => new Category { Id = c.Id, Name = c.Name, Color = c.Color })
+                .ToList();
+        }
+
+        public Category AddCategory(string login, string name, string color)
+        {
+            var entity   = GetUserEntity(login, "UserList.AddCategory");
+            using var db = new AppDbContext();
+
+            var cat = new CategoryEntity { UserId = entity.Id, Name = name, Color = color };
+            db.Categories.Add(cat);
+            db.SaveChanges();
+
+            return new Category { Id = cat.Id, Name = cat.Name, Color = cat.Color };
+        }
+
+        public bool EditCategory(int categoryId, string name, string color)
+        {
+            using var db = new AppDbContext();
+            var cat = db.Categories.FirstOrDefault(c => c.Id == categoryId);
+            if (cat == null) return false;
+
+            cat.Name  = name;
+            cat.Color = color;
+            db.SaveChanges();
+            return true;
+        }
+
+        public bool DeleteCategory(int categoryId)
+        {
+            using var db = new AppDbContext();
+            var cat = db.Categories.FirstOrDefault(c => c.Id == categoryId);
+            if (cat == null) return false;
+
+            db.Categories.Remove(cat);
+            db.SaveChanges();
+            return true;
+        }
+
+        // ─── Приватные helpers ────────────────────────────────────────────────
+
         private static UserEntity GetUserEntity(string login, string location)
         {
             using var db = new AppDbContext();
@@ -267,7 +341,7 @@ namespace ENB_project
 
         /// <summary>
         /// Строит FileSystemTree из БД, восстанавливая Parent-ссылки в памяти.
-        /// Контент заметок загружается сразу одним запросом.
+        /// Контент и категории загружаются одним запросом.
         /// </summary>
         private static FileSystemTree LoadTree(int userId)
         {
@@ -275,6 +349,7 @@ namespace ENB_project
 
             var allNodes = db.FileSystemNodes
                 .AsNoTracking()
+                .Include(n => n.Category)
                 .Where(n => n.UserId == userId)
                 .OrderBy(n => n.SortOrder)
                 .ToList();
@@ -290,7 +365,9 @@ namespace ENB_project
                 n => new FileSystemNode(n.Name,
                     n.ItemType == "Folder" ? FileItemType.Folder : FileItemType.File)
                 {
-                    Content = contentMap.GetValueOrDefault(n.Id)
+                    Content       = contentMap.GetValueOrDefault(n.Id),
+                    CategoryId    = n.CategoryId,
+                    CategoryColor = n.Category?.Color
                 });
 
             var tree = new FileSystemTree();
@@ -336,11 +413,18 @@ namespace ENB_project
 
     public class User
     {
-        public required string Login     { get; init; }
-        public required string Password  { get; set; }
-        public required string Email     { get; set; }
-        public required string Theme     { get; set; }
-        public required string Language  { get; set; }
-        public FileSystemTree  Tree      { get; set; } = new();
+        public required string Login    { get; init; }
+        public required string Password { get; set; }
+        public required string Email    { get; set; }
+        public required string Theme    { get; set; }
+        public required string Language { get; set; }
+        public FileSystemTree  Tree     { get; set; } = new();
+    }
+
+    public class Category
+    {
+        public int    Id    { get; set; }
+        public string Name  { get; set; } = string.Empty;
+        public string Color { get; set; } = "#7C6FCD";
     }
 }

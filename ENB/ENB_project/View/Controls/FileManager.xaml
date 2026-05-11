@@ -34,15 +34,13 @@
                         <Grid Background="Transparent">
                             <Track x:Name="PART_Track" IsDirectionReversed="True">
                                 <Track.DecreaseRepeatButton>
-                                    <RepeatButton Opacity="0" Height="0"
-                                                  Command="ScrollBar.LineUpCommand"/>
+                                    <RepeatButton Opacity="0" Height="0" Command="ScrollBar.LineUpCommand"/>
                                 </Track.DecreaseRepeatButton>
                                 <Track.Thumb>
                                     <Thumb Style="{DynamicResource SlimThumb}"/>
                                 </Track.Thumb>
                                 <Track.IncreaseRepeatButton>
-                                    <RepeatButton Opacity="0" Height="0"
-                                                  Command="ScrollBar.LineDownCommand"/>
+                                    <RepeatButton Opacity="0" Height="0" Command="ScrollBar.LineDownCommand"/>
                                 </Track.IncreaseRepeatButton>
                             </Track>
                         </Grid>
@@ -85,17 +83,26 @@
                     MouseMove="Row_MouseMove"
                     DragOver="Row_DragOver"
                     DragLeave="Row_DragLeave"
-                    Drop="Row_Drop">
+                    Drop="Row_Drop"
+                    ClipToBounds="True">
                 <Grid>
                     <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="3"/>
                         <ColumnDefinition Width="{Binding IndentWidth}"/>
                         <ColumnDefinition Width="16"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
-                    <Rectangle Grid.Column="0" Fill="Transparent"/>
+                    <!-- Цветная полоска категории -->
+                    <Rectangle x:Name="CategoryStripe"
+                               Grid.Column="0"
+                               Width="3"
+                               Fill="Transparent"
+                               RadiusX="1.5" RadiusY="1.5"/>
 
-                    <TextBlock Grid.Column="1"
+                    <Rectangle Grid.Column="1" Fill="Transparent"/>
+
+                    <TextBlock Grid.Column="2"
                                x:Name="Arrow"
                                Text="›"
                                FontSize="13"
@@ -104,7 +111,7 @@
                                VerticalAlignment="Center"
                                Visibility="Collapsed"/>
 
-                    <TextBlock Grid.Column="2"
+                    <TextBlock Grid.Column="3"
                                x:Name="NameText"
                                Text="{Binding Item.Name}"
                                FontFamily="Segoe UI"
@@ -120,7 +127,7 @@
                 <DataTrigger Binding="{Binding Item.IsFolder}" Value="True">
                     <Setter TargetName="Arrow"    Property="Visibility" Value="Visible"/>
                     <Setter TargetName="NameText" Property="Foreground" Value="{DynamicResource ForegroundSecondaryBrush}"/>
-                    <Setter TargetName="NameText" Property="FontWeight"  Value="SemiBold"/>
+                    <Setter TargetName="NameText" Property="FontWeight" Value="SemiBold"/>
                 </DataTrigger>
 
                 <DataTrigger Binding="{Binding Item.IsExpanded}" Value="True">
@@ -138,6 +145,11 @@
                     <Setter TargetName="RowBorder" Property="Background"      Value="{DynamicResource DragHighlightBrush}"/>
                     <Setter TargetName="RowBorder" Property="BorderBrush"     Value="{DynamicResource DragHighlightBorderBrush}"/>
                     <Setter TargetName="RowBorder" Property="BorderThickness" Value="1"/>
+                </DataTrigger>
+
+                <DataTrigger Binding="{Binding Item.HasCategory}" Value="True">
+                    <Setter TargetName="CategoryStripe" Property="Fill"
+                            Value="{Binding Item.CategoryBrush}"/>
                 </DataTrigger>
 
                 <Trigger Property="IsMouseOver" Value="True">

@@ -69,6 +69,7 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        
 
         <Style x:Key="NewTabButton" TargetType="Button">
             <Setter Property="Background"      Value="Transparent"/>
@@ -374,6 +375,12 @@
 
                         <StackPanel Grid.Column="2" Orientation="Horizontal"
                                     VerticalAlignment="Center" Margin="0,0,10,0">
+                            <Button x:Name="CategoryBtn"
+                                    Style="{DynamicResource EditSaveButton}"
+                                    Content="{DynamicResource MainBtnCategory}"
+                                    Visibility="Collapsed"
+                                    Margin="0,0,6,0"
+                                    Click="Category_Click"/>
                             <Button x:Name="EditSaveBtn"
                                     Style="{DynamicResource EditSaveButton}"
                                     Content="{DynamicResource MainBtnEdit}"

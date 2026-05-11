@@ -10,11 +10,11 @@ none
 false
 TRACE;DEBUG;NET;NET8_0;NETCOREAPP
 D:\university\4_sem\oop\ENB\ENB\ENB_project\App.xaml
-61006863201
+71433942901
 
-14-567196227
+15837743903
 227643865078
-View\Controls\FileManager.xaml;View\Controls\SearchPanel.xaml;View\Controls\UserMenu.xaml;View\Windows\LogIn.xaml;View\Windows\MainWindow.xaml;View\Windows\Register.xaml;
+View\Controls\CategoryPicker.xaml;View\Controls\FileManager.xaml;View\Controls\SearchPanel.xaml;View\Controls\UserMenu.xaml;View\Windows\LogIn.xaml;View\Windows\MainWindow.xaml;View\Windows\Register.xaml;
 
 False
 
