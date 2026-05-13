@@ -26,7 +26,6 @@
                        FontWeight="SemiBold"
                        Margin="0,0,0,12"/>
 
-            <!-- Список категорий -->
             <Border Background="{DynamicResource SidebarBackgroundBrush}"
                     BorderBrush="{DynamicResource BorderBrush}"
                     BorderThickness="1"
@@ -35,7 +34,6 @@
                     Margin="0,0,0,10">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel>
-                        <!-- Без категории -->
                         <Border x:Name="NoneRow"
                                 Background="Transparent"
                                 Padding="10,7"
@@ -106,7 +104,6 @@
                 </ScrollViewer>
             </Border>
 
-            <!-- Создать / редактировать категорию -->
             <Border x:Name="EditorPanel"
                     Background="{DynamicResource SidebarBackgroundBrush}"
                     BorderBrush="{DynamicResource BorderBrush}"
@@ -141,7 +138,6 @@
                                Margin="0,0,0,6"/>
 
                     <WrapPanel x:Name="ColorPicker" Margin="0,0,0,8">
-                        <!-- Цвета заполняются из code-behind -->
                     </WrapPanel>
 
                     <Grid>
@@ -174,8 +170,7 @@
                     </Grid>
                 </StackPanel>
             </Border>
-
-            <!-- Кнопка добавить категорию -->
+            
             <Button x:Name="AddCatBtn"
                     Content="{DynamicResource CategoryPickerAdd}"
                     Background="Transparent"
@@ -186,8 +181,7 @@
                     Cursor="Hand"
                     Margin="0,0,0,10"
                     Click="AddCat_Click"/>
-
-            <!-- Кнопка закрыть -->
+            
             <Button Content="{DynamicResource CategoryPickerClose}"
                     Background="{DynamicResource SurfaceBrush}"
                     BorderBrush="{DynamicResource BorderMutedBrush}"

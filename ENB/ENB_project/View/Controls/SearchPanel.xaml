@@ -77,32 +77,52 @@
                     CornerRadius="4"
                     Margin="0,1,4,1"
                     MinHeight="40"
-                    Padding="10,6"
                     Cursor="Hand"
+                    ClipToBounds="True"
                     MouseLeftButtonDown="ResultRow_MouseLeftButtonDown">
-                <StackPanel>
-                    <TextBlock x:Name="NameText"
-                               Text="{Binding Name}"
-                               FontFamily="Segoe UI"
-                               FontSize="12.5"
-                               FontWeight="SemiBold"
-                               Foreground="{DynamicResource ForegroundSecondaryBrush}"
-                               TextTrimming="CharacterEllipsis"/>
-                    <TextBlock x:Name="SnippetText"
-                               Text="{Binding Snippet}"
-                               FontFamily="Segoe UI"
-                               FontSize="11"
-                               Foreground="{DynamicResource ForegroundGhostBrush}"
-                               TextTrimming="CharacterEllipsis"
-                               Margin="0,2,0,0"
-                               Visibility="{Binding SnippetVisibility}"/>
-                </StackPanel>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="3"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Rectangle x:Name="CategoryStripe"
+                               Grid.Column="0"
+                               Width="3"
+                               Fill="Transparent"
+                               RadiusX="1.5" RadiusY="1.5"
+                               Visibility="{Binding CategoryVisibility}"/>
+
+                    <StackPanel Grid.Column="1">
+                        <TextBlock x:Name="NameText"
+                                   Text="{Binding Name}"
+                                   FontFamily="Segoe UI"
+                                   FontSize="12.5"
+                                   Padding="10,6"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource ForegroundSecondaryBrush}"
+                                   TextTrimming="CharacterEllipsis"/>
+                        <TextBlock x:Name="SnippetText"
+                                   Text="{Binding Snippet}"
+                                   FontFamily="Segoe UI"
+                                   FontSize="11"
+                                   Padding="10,6"
+                                   Foreground="{DynamicResource ForegroundGhostBrush}"
+                                   TextTrimming="CharacterEllipsis"
+                                   Margin="0,2,0,0"
+                                   Visibility="{Binding SnippetVisibility}"/>
+                    </StackPanel>
+                </Grid>
             </Border>
             <DataTemplate.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter TargetName="RowBorder" Property="Background" Value="{DynamicResource SurfaceBrush}"/>
-                    <Setter TargetName="NameText"  Property="Foreground" Value="{DynamicResource ForegroundPrimaryBrush}"/>
+                    <Setter TargetName="RowBorder"  Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+                    <Setter TargetName="NameText"   Property="Foreground" Value="{DynamicResource ForegroundPrimaryBrush}"/>
                 </Trigger>
+                <DataTrigger Binding="{Binding CategoryVisibility}" Value="Visible">
+                    <Setter TargetName="CategoryStripe" Property="Fill"
+                            Value="{Binding CategoryBrush}"/>
+                </DataTrigger>
             </DataTemplate.Triggers>
         </DataTemplate>
 

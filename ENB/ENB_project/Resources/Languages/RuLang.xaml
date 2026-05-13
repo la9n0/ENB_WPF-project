@@ -44,6 +44,9 @@
     <sys:String x:Key="MainDeleteTitle">Подтверждение</sys:String>
     <sys:String x:Key="MainNewNoteName">Новая заметка</sys:String>
     <sys:String x:Key="MainNewFolderName">Новая папка</sys:String>
+    <sys:String x:Key="MainBtnCategory">Категория</sys:String>
+    <sys:String x:Key="MainCreateTime">Дата создания</sys:String>
+    <sys:String x:Key="MainEditTime">Дата последнего изменения</sys:String>
 
     <sys:String x:Key="UserMenuTitle">Профиль</sys:String>
     <sys:String x:Key="UserMenuLogin">Имя пользователя</sys:String>
@@ -73,7 +76,6 @@
     <sys:String x:Key="SearchPlaceholder">Поиск заметок...</sys:String>
     <sys:String x:Key="SearchFound">Найдено: {0}</sys:String>
     
-    <sys:String x:Key="MainBtnCategory">Категория</sys:String>
     <sys:String x:Key="CategoryPickerTitle">Категория заметки</sys:String>
     <sys:String x:Key="CategoryPickerNone">Без категории</sys:String>
     <sys:String x:Key="CategoryPickerName">Название</sys:String>

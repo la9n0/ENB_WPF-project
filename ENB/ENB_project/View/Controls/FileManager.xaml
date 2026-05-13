@@ -92,8 +92,7 @@
                         <ColumnDefinition Width="16"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-
-                    <!-- Цветная полоска категории -->
+                    
                     <Rectangle x:Name="CategoryStripe"
                                Grid.Column="0"
                                Width="3"

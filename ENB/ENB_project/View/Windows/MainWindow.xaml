@@ -262,7 +262,8 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <Border Grid.Row="0"
+                    <Border x:Name="FileManagerToolbar"
+                            Grid.Row="0"
                             BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1"
                             Padding="6,6">
                         <StackPanel Orientation="Horizontal">
@@ -341,37 +342,62 @@
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-
-                        <Grid Grid.Column="1" VerticalAlignment="Center">
-                            <TextBlock x:Name="PageTitle"
-                                       Text="{DynamicResource MainNewTab}"
+                        
+                        <Grid Grid.Column="0" Margin="0,0,10,0" VerticalAlignment="Center">
+                            <Grid.RowDefinitions>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock x:Name="NoteCreateTime"
+                                       Grid.Row="0"
                                        Foreground="{DynamicResource ForegroundDimBrush}"
                                        FontFamily="Segoe UI"
-                                       FontSize="18"
-                                       FontWeight="SemiBold"
+                                       FontSize="10"
+                                       ToolTip="{DynamicResource MainCreateTime}"
+                                       Margin="10,2"
+                                       Visibility="Collapsed"
                                        HorizontalAlignment="Center"
-                                       VerticalAlignment="Center"
-                                       Cursor="IBeam"
-                                       MouseLeftButtonDown="PageTitle_MouseLeftButtonDown"/>
-
-                            <TextBox x:Name="PageTitleEdit"
-                                     Visibility="Collapsed"
-                                     Background="Transparent"
-                                     Foreground="{DynamicResource ForegroundPrimaryBrush}"
-                                     CaretBrush="{DynamicResource ForegroundPrimaryBrush}"
-                                     SelectionBrush="{DynamicResource AccentBrush}"
-                                     BorderThickness="0,0,0,1"
-                                     BorderBrush="{DynamicResource AccentBrush}"
-                                     FontFamily="Segoe UI"
-                                     FontSize="18"
-                                     FontWeight="SemiBold"
-                                     HorizontalAlignment="Center"
-                                     HorizontalContentAlignment="Center"
-                                     MinWidth="200"
-                                     Padding="4,0"
-                                     KeyDown="PageTitleEdit_KeyDown"
-                                     LostFocus="PageTitleEdit_LostFocus"/>
-                        </Grid>
+                                       VerticalAlignment="Center"/>
+                            <TextBlock x:Name="NoteEditTime"
+                                       Grid.Row="1"
+                                       Foreground="{DynamicResource ForegroundDimBrush}"
+                                       FontFamily="Segoe UI"
+                                       FontSize="10"
+                                       ToolTip="{DynamicResource MainEditTime}"
+                                       Margin="10,2"
+                                       Visibility="Collapsed"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"/>
+                            </Grid>
+                            <Grid Grid.Column="1" VerticalAlignment="Center">
+                                <TextBlock x:Name="PageTitle"
+                                                   Text="{DynamicResource MainNewTab}"
+                                                   Foreground="{DynamicResource ForegroundDimBrush}"
+                                                   FontFamily="Segoe UI"
+                                                   FontSize="18"
+                                                   FontWeight="SemiBold"
+                                                   HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center"
+                                                   Cursor="IBeam"
+                                                   MouseLeftButtonDown="PageTitle_MouseLeftButtonDown"/>
+                                <TextBox x:Name="PageTitleEdit"
+                                         Visibility="Collapsed"
+                                         Background="Transparent"
+                                         Foreground="{DynamicResource ForegroundPrimaryBrush}"
+                                         CaretBrush="{DynamicResource ForegroundPrimaryBrush}"
+                                         SelectionBrush="{DynamicResource AccentBrush}"
+                                         BorderThickness="0,0,0,1"
+                                         BorderBrush="{DynamicResource AccentBrush}"
+                                         FontFamily="Segoe UI"
+                                         FontSize="18"
+                                         FontWeight="SemiBold"
+                                         HorizontalAlignment="Center"
+                                         HorizontalContentAlignment="Center"
+                                         MinWidth="200"
+                                         Padding="4,0"
+                                         KeyDown="PageTitleEdit_KeyDown"
+                                         LostFocus="PageTitleEdit_LostFocus"/>
+                            </Grid>
 
                         <StackPanel Grid.Column="2" Orientation="Horizontal"
                                     VerticalAlignment="Center" Margin="0,0,10,0">

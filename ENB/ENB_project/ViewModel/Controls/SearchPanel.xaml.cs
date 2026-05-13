@@ -3,17 +3,37 @@ using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 
 namespace ENB_project.Controls;
 
 public class SearchResultItem
 {
-    public string Name    { get; set; } = string.Empty;
-    public string Snippet { get; set; } = string.Empty;
+    public string  Name          { get; set; } = string.Empty;
+    public string  Snippet       { get; set; } = string.Empty;
+    public string? CategoryColor { get; set; }
 
     public Visibility SnippetVisibility => string.IsNullOrEmpty(Snippet)
         ? Visibility.Collapsed
         : Visibility.Visible;
+
+    public Visibility CategoryVisibility => string.IsNullOrEmpty(CategoryColor)
+        ? Visibility.Collapsed
+        : Visibility.Visible;
+
+    public SolidColorBrush? CategoryBrush
+    {
+        get
+        {
+            if (CategoryColor == null) return null;
+            try
+            {
+                var color = (Color)ColorConverter.ConvertFromString(CategoryColor);
+                return new SolidColorBrush(color);
+            }
+            catch { return null; }
+        }
+    }
 }
 
 public class SearchPanelItemSelectedEventArgs : RoutedEventArgs
@@ -82,7 +102,11 @@ public partial class SearchPanel : UserControl, INotifyPropertyChanged
 
             if (string.IsNullOrEmpty(trimmed))
             {
-                results.Add(new SearchResultItem { Name = node.Name });
+                results.Add(new SearchResultItem
+                {
+                    Name          = node.Name,
+                    CategoryColor = node.CategoryColor
+                });
                 return;
             }
 
@@ -91,15 +115,18 @@ public partial class SearchPanel : UserControl, INotifyPropertyChanged
             bool   contentMatch = snippet.Length > 0;
 
             if (nameMatch || contentMatch)
-                results.Add(new SearchResultItem { Name = node.Name, Snippet = snippet });
+                results.Add(new SearchResultItem
+                {
+                    Name          = node.Name,
+                    Snippet       = snippet,
+                    CategoryColor = node.CategoryColor
+                });
         });
 
         ResultsList.ItemsSource = results;
 
         if (string.IsNullOrEmpty(trimmed))
-        {
             QueryInfoVisibility = Visibility.Collapsed;
-        }
         else
         {
             QueryInfo           = $"Найдено: {results.Count}";

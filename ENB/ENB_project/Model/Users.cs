@@ -66,8 +66,6 @@ namespace ENB_project
             return true;
         }
 
-        // ─── Дерево ──────────────────────────────────────────────────────────
-
         public FileSystemTree GetTree(string login)
         {
             var entity = GetUserEntity(login, "UserList.GetTree");
@@ -165,9 +163,11 @@ namespace ENB_project
             return new FileSystemNode(nodeDb.Name,
                 nodeDb.ItemType == "Folder" ? FileItemType.Folder : FileItemType.File)
             {
-                Content    = content,
-                CategoryId = nodeDb.CategoryId,
-                CategoryColor = nodeDb.Category?.Color
+                Content       = content,
+                CategoryId    = nodeDb.CategoryId,
+                CategoryColor = nodeDb.Category?.Color,
+                CreateTime    = nodeDb.CreateTime,
+                EditTime      = nodeDb.EditTime
             };
         }
 
@@ -187,7 +187,7 @@ namespace ENB_project
         }
 
         /// <summary>
-        /// Сохраняет текст заметки. Создаёт запись NoteContent, если её ещё нет.
+        /// Сохраняет текст заметки и обновляет EditTime. Создаёт запись NoteContent, если её ещё нет.
         /// </summary>
         public void SaveNoteContent(string login, string nodeName, string content)
         {
@@ -204,6 +204,8 @@ namespace ENB_project
                 nodeDb.NoteContent = new NoteContentEntity { NodeId = nodeDb.Id, Content = content };
             else
                 nodeDb.NoteContent.Content = content;
+
+            nodeDb.EditTime = DateOnly.FromDateTime(DateTime.Now);
 
             db.SaveChanges();
         }
@@ -238,8 +240,6 @@ namespace ENB_project
             nodeDb.CategoryId = categoryId;
             db.SaveChanges();
         }
-
-        // ─── Категории ────────────────────────────────────────────────────────
 
         public List<Category> GetCategories(string login)
         {
@@ -289,8 +289,6 @@ namespace ENB_project
             return true;
         }
 
-        // ─── Приватные helpers ────────────────────────────────────────────────
-
         private static UserEntity GetUserEntity(string login, string location)
         {
             using var db = new AppDbContext();
@@ -315,18 +313,25 @@ namespace ENB_project
             return db.FileSystemNodes.Count(n => n.UserId == userId && n.ParentId == null);
         }
 
+        /// <summary>
+        /// Создаёт узел в БД. Для файлов сразу создаёт NoteContent и устанавливает CreateTime/EditTime.
+        /// </summary>
         private static FileSystemNode CreateNode(
             int userId, int? parentId, string name, FileItemType type, int sortOrder)
         {
             using var db = new AppDbContext();
 
+            var today = DateOnly.FromDateTime(DateTime.Now);
+
             var entity = new FileSystemNodeEntity
             {
-                UserId    = userId,
-                ParentId  = parentId,
-                Name      = name,
-                ItemType  = type == FileItemType.Folder ? "Folder" : "File",
-                SortOrder = sortOrder
+                UserId     = userId,
+                ParentId   = parentId,
+                Name       = name,
+                ItemType   = type == FileItemType.Folder ? "Folder" : "File",
+                SortOrder  = sortOrder,
+                CreateTime = today,
+                EditTime   = today
             };
 
             db.FileSystemNodes.Add(entity);
@@ -336,7 +341,11 @@ namespace ENB_project
 
             db.SaveChanges();
 
-            return new FileSystemNode(name, type);
+            return new FileSystemNode(name, type)
+            {
+                CreateTime = today,
+                EditTime   = today
+            };
         }
 
         /// <summary>
@@ -367,7 +376,9 @@ namespace ENB_project
                 {
                     Content       = contentMap.GetValueOrDefault(n.Id),
                     CategoryId    = n.CategoryId,
-                    CategoryColor = n.Category?.Color
+                    CategoryColor = n.Category?.Color,
+                    CreateTime    = n.CreateTime,
+                    EditTime      = n.EditTime
                 });
 
             var tree = new FileSystemTree();

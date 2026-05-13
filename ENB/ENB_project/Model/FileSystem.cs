@@ -19,6 +19,8 @@ namespace ENB_project
         public string? Content       { get; set; }
         public int?    CategoryId    { get; set; }
         public string? CategoryColor { get; set; }
+        public DateOnly EditTime { get; set; }
+        public DateOnly CreateTime { get; set; }
 
         public List<FileSystemNode> Children { get; set; } = new();
 

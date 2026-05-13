@@ -34,6 +34,8 @@ namespace ENB_project
                 e.Property(n => n.Name).HasMaxLength(255).IsRequired();
                 e.Property(n => n.ItemType).HasMaxLength(10).IsRequired().HasDefaultValue("File");
                 e.Property(n => n.SortOrder).IsRequired().HasDefaultValue(0);
+                e.Property(n=> n.CreateTime).IsRequired();
+                e.Property(n=> n.EditTime).IsRequired();
 
                 e.HasOne(n => n.User)
                  .WithMany(u => u.Nodes)
@@ -103,6 +105,8 @@ namespace ENB_project
         public string Name       { get; set; } = string.Empty;
         public string ItemType   { get; set; } = "File";
         public int    SortOrder  { get; set; } = 0;
+        public DateOnly EditTime { get; set; }
+        public DateOnly CreateTime { get; set; }
 
         public UserEntity                 User        { get; set; } = null!;
         public FileSystemNodeEntity?      Parent      { get; set; }

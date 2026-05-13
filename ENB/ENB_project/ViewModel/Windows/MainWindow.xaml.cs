@@ -44,9 +44,9 @@ namespace ENB_project
         private readonly ObservableCollection<NoteTab> _tabs = new();
         private NoteTab? _activeTab;
 
-        private bool _isEditMode = false;
+        private bool _isEditMode     = false;
         private bool _isUserMenuOpen = false;
-        private bool _isSearchOpen = false;
+        private bool _isSearchOpen   = false;
 
         public MainWindow(string login)
         {
@@ -63,7 +63,7 @@ namespace ENB_project
         private void OnLanguageChanged(string lang)
         {
             var newTabText = (string)TryFindResource("MainNewTab") ?? "Новая вкладка";
-            var editText = (string)TryFindResource("MainBtnEdit") ?? "Редактировать";
+            var editText   = (string)TryFindResource("MainBtnEdit") ?? "Редактировать";
 
             foreach (var tab in _tabs.Where(t => t.NoteName == null))
                 tab.Title = newTabText;
@@ -103,15 +103,15 @@ namespace ENB_project
 
         private void BindShortcuts()
         {
-            var newNote = new RoutedCommand();
+            var newNote   = new RoutedCommand();
             var newFolder = new RoutedCommand();
-            var save = new RoutedCommand();
+            var save      = new RoutedCommand();
             var deleteCmd = new RoutedCommand();
             var renameCmd = new RoutedCommand();
 
-            CommandBindings.Add(new CommandBinding(newNote, (_, _) => CreateNote()));
+            CommandBindings.Add(new CommandBinding(newNote,   (_, _) => CreateNote()));
             CommandBindings.Add(new CommandBinding(newFolder, (_, _) => CreateFolder()));
-            CommandBindings.Add(new CommandBinding(save, (_, _) => SaveIfEditing()));
+            CommandBindings.Add(new CommandBinding(save,      (_, _) => SaveIfEditing()));
             CommandBindings.Add(new CommandBinding(deleteCmd, (_, _) => DeleteSelected()));
             CommandBindings.Add(new CommandBinding(renameCmd, (_, _) => RenameSelected()));
 
@@ -140,17 +140,19 @@ namespace ENB_project
 
         private void OpenSearch()
         {
-            _isSearchOpen = true;
-            MyFileManager.Visibility = Visibility.Collapsed;
-            MySearchPanel.Visibility = Visibility.Visible;
+            _isSearchOpen              = true;
+            FileManagerToolbar.Visibility = Visibility.Collapsed;
+            MyFileManager.Visibility   = Visibility.Collapsed;
+            MySearchPanel.Visibility   = Visibility.Visible;
             MySearchPanel.SetTree(_user.Tree);
         }
 
         private void CloseSearch()
         {
-            _isSearchOpen = false;
-            MySearchPanel.Visibility = Visibility.Collapsed;
-            MyFileManager.Visibility = Visibility.Visible;
+            _isSearchOpen              = false;
+            MySearchPanel.Visibility   = Visibility.Collapsed;
+            MyFileManager.Visibility   = Visibility.Visible;
+            FileManagerToolbar.Visibility = Visibility.Visible;
         }
 
         private void ProfileButton_Click(object sender, RoutedEventArgs e)
@@ -163,11 +165,14 @@ namespace ENB_project
         {
             _isUserMenuOpen = true;
 
-            NoteEditor.Visibility = Visibility.Collapsed;
-            EmptyState.Visibility = Visibility.Collapsed;
-            EditSaveBtn.Visibility = Visibility.Collapsed;
-            PageTitle.Visibility = Visibility.Collapsed;
-            PageTitleEdit.Visibility = Visibility.Collapsed;
+            NoteEditor.Visibility     = Visibility.Collapsed;
+            EmptyState.Visibility     = Visibility.Collapsed;
+            EditSaveBtn.Visibility    = Visibility.Collapsed;
+            CategoryBtn.Visibility    = Visibility.Collapsed;
+            PageTitle.Visibility      = Visibility.Collapsed;
+            PageTitleEdit.Visibility  = Visibility.Collapsed;
+            NoteEditTime.Visibility   = Visibility.Collapsed;
+            NoteCreateTime.Visibility = Visibility.Collapsed;
 
             UserMenuControl.Visibility = Visibility.Visible;
         }
@@ -176,18 +181,14 @@ namespace ENB_project
         {
             _user = _userList.GetUser(_user.Login) ?? _user;
 
-            _isUserMenuOpen = false;
+            _isUserMenuOpen            = false;
             UserMenuControl.Visibility = Visibility.Collapsed;
-            PageTitle.Visibility = Visibility.Visible;
+            PageTitle.Visibility       = Visibility.Visible;
 
             if (_activeTab?.NoteName != null)
             {
                 var node = _user.Tree.FindByName(_activeTab.NoteName);
-                if (node != null)
-                {
-                    ShowNote(node);
-                    return;
-                }
+                if (node != null) { ShowNote(node); return; }
             }
 
             ShowEmpty();
@@ -205,14 +206,10 @@ namespace ENB_project
         private void ActivateTab(NoteTab tab)
         {
             if (_activeTab != null) _activeTab.IsActive = false;
-            _activeTab = tab;
+            _activeTab   = tab;
             tab.IsActive = true;
 
-            if (_isUserMenuOpen)
-            {
-                CloseUserMenu();
-                return;
-            }
+            if (_isUserMenuOpen) { CloseUserMenu(); return; }
 
             if (tab.NoteName != null)
             {
@@ -245,12 +242,7 @@ namespace ENB_project
             var idx = _tabs.IndexOf(tab);
             _tabs.Remove(tab);
 
-            if (_tabs.Count == 0)
-            {
-                AddTab();
-                return;
-            }
-
+            if (_tabs.Count == 0) { AddTab(); return; }
             if (tab == _activeTab)
                 ActivateTab(_tabs[Math.Clamp(idx, 0, _tabs.Count - 1)]);
         }
@@ -277,16 +269,12 @@ namespace ENB_project
         private void OpenNoteInTab(string noteName)
         {
             var existing = _tabs.FirstOrDefault(t => t.NoteName == noteName);
-            if (existing != null)
-            {
-                ActivateTab(existing);
-                return;
-            }
+            if (existing != null) { ActivateTab(existing); return; }
 
             if (_activeTab?.NoteName == null)
             {
                 _activeTab!.NoteName = noteName;
-                _activeTab.Title = noteName;
+                _activeTab.Title     = noteName;
                 var node = _user.Tree.FindByName(noteName);
                 if (node != null) ShowNote(node);
             }
@@ -297,33 +285,45 @@ namespace ENB_project
         {
             ExitEditMode(save: false);
 
-            PageTitle.Text = node.Name;
-            NoteEditor.Text = node.Content ?? string.Empty;
+            PageTitle.Text        = node.Name;
+            NoteEditor.Text       = node.Content ?? string.Empty;
             NoteEditor.IsReadOnly = true;
 
+            NoteCreateTime.Text = node.CreateTime == default
+                ? string.Empty
+                : node.CreateTime.ToString();
+
+            NoteEditTime.Text = node.EditTime == default
+                ? string.Empty
+                : node.EditTime.ToString();
+
             UserMenuControl.Visibility = Visibility.Collapsed;
-            EmptyState.Visibility = Visibility.Collapsed;
-            NoteEditor.Visibility = Visibility.Visible;
-            PageTitle.Visibility = Visibility.Visible;
-            EditSaveBtn.Visibility = Visibility.Visible;
-            CategoryBtn.Visibility = Visibility.Visible;
-            EditSaveBtn.Content = TryFindResource("MainBtnEdit") ?? "Редактировать";
+            EmptyState.Visibility      = Visibility.Collapsed;
+            NoteEditor.Visibility      = Visibility.Visible;
+            PageTitle.Visibility       = Visibility.Visible;
+            EditSaveBtn.Visibility     = Visibility.Visible;
+            CategoryBtn.Visibility     = Visibility.Visible;
+            NoteCreateTime.Visibility  = Visibility.Visible;
+            NoteEditTime.Visibility    = Visibility.Visible;
+            EditSaveBtn.Content        = TryFindResource("MainBtnEdit") ?? "Редактировать";
 
             if (_activeTab != null) _activeTab.Title = node.Name;
         }
-        
+
         private void ShowEmpty()
         {
             ExitEditMode(save: false);
-            PageTitle.Text = (string)(TryFindResource("MainNewTab") ?? "Новая вкладка");
+            PageTitle.Text  = (string)(TryFindResource("MainNewTab") ?? "Новая вкладка");
             NoteEditor.Text = string.Empty;
 
             UserMenuControl.Visibility = Visibility.Collapsed;
-            EmptyState.Visibility = Visibility.Visible;
-            NoteEditor.Visibility = Visibility.Collapsed;
-            PageTitle.Visibility = Visibility.Visible;
-            EditSaveBtn.Visibility = Visibility.Collapsed;
-            CategoryBtn.Visibility = Visibility.Collapsed;
+            EmptyState.Visibility      = Visibility.Visible;
+            NoteEditor.Visibility      = Visibility.Collapsed;
+            PageTitle.Visibility       = Visibility.Visible;
+            EditSaveBtn.Visibility     = Visibility.Collapsed;
+            CategoryBtn.Visibility     = Visibility.Collapsed;
+            NoteCreateTime.Visibility  = Visibility.Collapsed;
+            NoteEditTime.Visibility    = Visibility.Collapsed;
         }
 
         private void Category_Click(object sender, RoutedEventArgs e)
@@ -334,21 +334,23 @@ namespace ENB_project
             if (node == null) return;
 
             var categories = _userList.GetCategories(_user.Login);
-            var dialog = new CategoryPicker(categories, node.CategoryId, _user.Login, _userList);
+            var dialog     = new CategoryPicker(categories, node.CategoryId, _user.Login, _userList);
 
             dialog.Owner = this;
             if (dialog.ShowDialog() != true) return;
 
-            var selectedId = dialog.SelectedCategoryId;
+            var selectedId    = dialog.SelectedCategoryId;
             var selectedColor = dialog.SelectedCategoryColor;
 
-            node.CategoryId = selectedId;
+            node.CategoryId    = selectedId;
             node.CategoryColor = selectedColor;
 
             _userList.SetNodeCategory(_user.Login, _activeTab.NoteName, selectedId);
 
-            var item = MyFileManager.FindItemByName(_activeTab.NoteName);
-            if (item != null) item.CategoryColor = selectedColor;
+            MyFileManager.LoadFromTree(_user.Tree);
+
+            if (_isSearchOpen)
+                MySearchPanel.SetTree(_user.Tree);
         }
 
         private void PageTitle_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -357,8 +359,8 @@ namespace ENB_project
             if (_isUserMenuOpen) return;
             if (!_isEditMode) return;
 
-            PageTitle.Visibility = Visibility.Collapsed;
-            PageTitleEdit.Text = PageTitle.Text;
+            PageTitle.Visibility     = Visibility.Collapsed;
+            PageTitleEdit.Text       = PageTitle.Text;
             PageTitleEdit.Visibility = Visibility.Visible;
             PageTitleEdit.Focus();
             PageTitleEdit.SelectAll();
@@ -366,7 +368,7 @@ namespace ENB_project
 
         private void PageTitleEdit_KeyDown(object sender, KeyEventArgs e)
         {
-            if (e.Key == Key.Enter) CommitTitleEdit();
+            if (e.Key == Key.Enter)  CommitTitleEdit();
             if (e.Key == Key.Escape) CancelTitleEdit();
         }
 
@@ -391,7 +393,7 @@ namespace ENB_project
                     foreach (var tab in _tabs.Where(t => t.NoteName == oldName))
                     {
                         tab.NoteName = newName;
-                        tab.Title = newName;
+                        tab.Title    = newName;
                     }
 
                     PageTitle.Text = newName;
@@ -400,13 +402,13 @@ namespace ENB_project
             }
 
             PageTitleEdit.Visibility = Visibility.Collapsed;
-            PageTitle.Visibility = Visibility.Visible;
+            PageTitle.Visibility     = Visibility.Visible;
         }
 
         private void CancelTitleEdit()
         {
             PageTitleEdit.Visibility = Visibility.Collapsed;
-            PageTitle.Visibility = Visibility.Visible;
+            PageTitle.Visibility     = Visibility.Visible;
         }
 
         private void EditSave_Click(object sender, RoutedEventArgs e)
@@ -417,9 +419,9 @@ namespace ENB_project
 
         private void EnterEditMode()
         {
-            _isEditMode = true;
+            _isEditMode           = true;
             NoteEditor.IsReadOnly = false;
-            EditSaveBtn.Content = TryFindResource("MainBtnSave") ?? "Сохранить";
+            EditSaveBtn.Content   = TryFindResource("MainBtnSave") ?? "Сохранить";
             NoteEditor.Focus();
         }
 
@@ -432,9 +434,9 @@ namespace ENB_project
         private void ExitEditMode(bool save)
         {
             if (save) SaveActiveNote();
-            _isEditMode = false;
+            _isEditMode           = false;
             NoteEditor.IsReadOnly = true;
-            EditSaveBtn.Content = TryFindResource("MainBtnEdit") ?? "Редактировать";
+            EditSaveBtn.Content   = TryFindResource("MainBtnEdit") ?? "Редактировать";
         }
 
         private void SaveIfEditing()
@@ -449,8 +451,12 @@ namespace ENB_project
             var node = _user.Tree.FindByName(_activeTab.NoteName);
             if (node == null) return;
 
-            node.Content = NoteEditor.Text;
+            node.Content  = NoteEditor.Text;
+            node.EditTime = DateOnly.FromDateTime(DateTime.Now);
+
             _userList.SaveNoteContent(_user.Login, _activeTab.NoteName, NoteEditor.Text);
+
+            NoteEditTime.Text = node.EditTime.ToString();
         }
 
         private void MyFileManager_ItemMoved(
@@ -482,14 +488,14 @@ namespace ENB_project
             }
         }
 
-        private void CreateNote() => CreateItem(FileItemType.File);
+        private void CreateNote()   => CreateItem(FileItemType.File);
         private void CreateFolder() => CreateItem(FileItemType.Folder);
 
         private void CreateItem(FileItemType type)
         {
             var name = type == FileItemType.Folder
                 ? (string)(TryFindResource("MainNewFolderName") ?? "Новая папка")
-                : (string)(TryFindResource("MainNewNoteName") ?? "Новая заметка");
+                : (string)(TryFindResource("MainNewNoteName")   ?? "Новая заметка");
 
             var selected = MyFileManager.SelectedItem;
             FileSystemNode newNode;
@@ -501,16 +507,25 @@ namespace ENB_project
             }
             else if (selected.IsFolder)
             {
-                var parentNode = _user.Tree.FindByName(selected.Name)!;
-                newNode = _userList.AddNodeToFolder(_user.Login, parentNode, name, type);
-                parentNode.Children.Add(newNode);
-                newNode.Parent = parentNode;
-                MyFileManager.Expand(selected);
+                var parentNode = _user.Tree.FindByName(selected.Name);
+                if (parentNode == null)
+                {
+                    newNode = _userList.AddNodeToRoot(_user.Login, name, type);
+                    _user.Tree.Roots.Add(newNode);
+                }
+                else
+                {
+                    newNode = _userList.AddNodeToFolder(_user.Login, parentNode, name, type);
+                    parentNode.Children.Add(newNode);
+                    newNode.Parent = parentNode;
+                    MyFileManager.Expand(selected);
+                }
             }
             else
             {
-                var fileNode = _user.Tree.FindByName(selected.Name)!;
-                var parentNode = fileNode.Parent;
+                var fileNode   = _user.Tree.FindByName(selected.Name);
+                var parentNode = fileNode?.Parent;
+
                 if (parentNode != null)
                 {
                     newNode = _userList.AddNodeToFolder(_user.Login, parentNode, name, type);
@@ -571,8 +586,8 @@ namespace ENB_project
 
         private void BeginRename(FileManagerItem item, FileSystemNode node)
         {
-            RenameBox.Text = item.Name;
-            RenameBox.Tag = (item, node);
+            RenameBox.Text       = item.Name;
+            RenameBox.Tag        = (item, node);
             RenameBox.Visibility = Visibility.Visible;
             RenameBox.Focus();
             RenameBox.SelectAll();
@@ -580,7 +595,7 @@ namespace ENB_project
 
         private void RenameBox_KeyDown(object sender, KeyEventArgs e)
         {
-            if (e.Key == Key.Enter) CommitRename();
+            if (e.Key == Key.Enter)  CommitRename();
             if (e.Key == Key.Escape) CancelRename();
         }
 
@@ -604,7 +619,7 @@ namespace ENB_project
                 foreach (var tab in _tabs.Where(t => t.NoteName == oldName))
                 {
                     tab.NoteName = newName;
-                    tab.Title = newName;
+                    tab.Title    = newName;
                 }
 
                 if (_activeTab?.NoteName == newName)
@@ -621,7 +636,7 @@ namespace ENB_project
         {
             RenameBox.Visibility = Visibility.Collapsed;
 
-            var newNoteName = (string)(TryFindResource("MainNewNoteName") ?? "Новая заметка");
+            var newNoteName   = (string)(TryFindResource("MainNewNoteName")   ?? "Новая заметка");
             var newFolderName = (string)(TryFindResource("MainNewFolderName") ?? "Новая папка");
 
             if (RenameBox.Tag is (FileManagerItem item, FileSystemNode node)
@@ -633,10 +648,10 @@ namespace ENB_project
             }
         }
 
-        private void NewNote_Click(object sender, RoutedEventArgs e) => CreateNote();
-        private void NewFolder_Click(object sender, RoutedEventArgs e) => CreateFolder();
-        private void Delete_Click(object sender, RoutedEventArgs e) => DeleteSelected();
-        private void Rename_Click(object sender, RoutedEventArgs e) => RenameSelected();
+        private void NewNote_Click    (object sender, RoutedEventArgs e) => CreateNote();
+        private void NewFolder_Click  (object sender, RoutedEventArgs e) => CreateFolder();
+        private void Delete_Click     (object sender, RoutedEventArgs e) => DeleteSelected();
+        private void Rename_Click     (object sender, RoutedEventArgs e) => RenameSelected();
         private void CollapseAll_Click(object sender, RoutedEventArgs e) => MyFileManager.CollapseAll();
 
         private void TitleBar_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)

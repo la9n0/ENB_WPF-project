@@ -44,6 +44,9 @@
     <sys:String x:Key="MainDeleteTitle">Confirmation</sys:String>
     <sys:String x:Key="MainNewNoteName">New note</sys:String>
     <sys:String x:Key="MainNewFolderName">New folder</sys:String>
+    <sys:String x:Key="MainBtnCategory">Category</sys:String>
+    <sys:String x:Key="MainCreateTime">Created date</sys:String>
+    <sys:String x:Key="MainEditTime">Last edited date</sys:String>
 
     <sys:String x:Key="UserMenuTitle">Profile</sys:String>
     <sys:String x:Key="UserMenuLogin">Username</sys:String>
@@ -73,7 +76,6 @@
     <sys:String x:Key="SearchPlaceholder">Search notes...</sys:String>
     <sys:String x:Key="SearchFound">Found: {0}</sys:String>
     
-    <sys:String x:Key="MainBtnCategory">Category</sys:String>
     <sys:String x:Key="CategoryPickerTitle">Note category</sys:String>
     <sys:String x:Key="CategoryPickerNone">No category</sys:String>
     <sys:String x:Key="CategoryPickerName">Name</sys:String>
