@@ -15,6 +15,7 @@
     <sys:String x:Key="LogInErrorText">Invalid credentials</sys:String>
     <sys:String x:Key="LogInRegistration">Registration</sys:String>
     <sys:String x:Key="LogInUserNotFound">User not found</sys:String>
+    <sys:String x:Key="LogInUserBlocked">Account is blocked</sys:String>
 
     <sys:String x:Key="RegisterNewUser">New User</sys:String>
     <sys:String x:Key="RegisterLogin">Login</sys:String>
@@ -38,13 +39,13 @@
     <sys:String x:Key="MainTooltipNewTab">New tab</sys:String>
     <sys:String x:Key="MainBtnEdit">Edit</sys:String>
     <sys:String x:Key="MainBtnSave">Save</sys:String>
+    <sys:String x:Key="MainBtnCategory">Category</sys:String>
     <sys:String x:Key="MainEmptyCreateFile">Create new file (Ctrl + N)</sys:String>
     <sys:String x:Key="MainEmptyCreateFolder">Create folder (Ctrl + Shift + N)</sys:String>
     <sys:String x:Key="MainDeleteConfirm">Delete «{0}»?</sys:String>
     <sys:String x:Key="MainDeleteTitle">Confirmation</sys:String>
     <sys:String x:Key="MainNewNoteName">New note</sys:String>
     <sys:String x:Key="MainNewFolderName">New folder</sys:String>
-    <sys:String x:Key="MainBtnCategory">Category</sys:String>
     <sys:String x:Key="MainCreateTime">Created date</sys:String>
     <sys:String x:Key="MainEditTime">Last edited date</sys:String>
 
@@ -75,7 +76,7 @@
 
     <sys:String x:Key="SearchPlaceholder">Search notes...</sys:String>
     <sys:String x:Key="SearchFound">Found: {0}</sys:String>
-    
+
     <sys:String x:Key="CategoryPickerTitle">Note category</sys:String>
     <sys:String x:Key="CategoryPickerNone">No category</sys:String>
     <sys:String x:Key="CategoryPickerName">Name</sys:String>
@@ -84,5 +85,19 @@
     <sys:String x:Key="CategoryPickerSave">Save</sys:String>
     <sys:String x:Key="CategoryPickerCancel">Cancel</sys:String>
     <sys:String x:Key="CategoryPickerClose">Close</sys:String>
+
+    <sys:String x:Key="AdminTitle">Users</sys:String>
+    <sys:String x:Key="AdminRefresh">↻ Refresh</sys:String>
+    <sys:String x:Key="AdminTotal">Total:</sys:String>
+    <sys:String x:Key="AdminColLogin">Login</sys:String>
+    <sys:String x:Key="AdminColEmail">Email</sys:String>
+    <sys:String x:Key="AdminColNotes">Notes</sys:String>
+    <sys:String x:Key="AdminColActions">Actions</sys:String>
+    <sys:String x:Key="AdminBlock">Block</sys:String>
+    <sys:String x:Key="AdminUnblock">Unblock</sys:String>
+    <sys:String x:Key="AdminDelete">Delete</sys:String>
+    <sys:String x:Key="AdminDeleteConfirm">Delete user «{0}»?</sys:String>
+    <sys:String x:Key="AdminDeleteTitle">Confirmation</sys:String>
+    <sys:String x:Key="AdminEmpty">No users found</sys:String>
 
 </ResourceDictionary>

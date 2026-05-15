@@ -454,7 +454,7 @@ namespace ENB_project
             node.Content  = NoteEditor.Text;
             node.EditTime = DateOnly.FromDateTime(DateTime.Now);
 
-            _userList.SaveNoteContent(_user.Login, _activeTab.NoteName, NoteEditor.Text);
+            _ = _userList.SaveNoteContentAsync(_user.Login, _activeTab.NoteName, NoteEditor.Text);
 
             NoteEditTime.Text = node.EditTime.ToString();
         }
@@ -628,10 +628,7 @@ namespace ENB_project
 
             RenameBox.Visibility = Visibility.Collapsed;
         }
-
-        /// <summary>
-        /// Отменяет переименование. Если узел был только что создан — удаляет его из дерева и БД.
-        /// </summary>
+        
         private void CancelRename()
         {
             RenameBox.Visibility = Visibility.Collapsed;

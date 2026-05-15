@@ -192,7 +192,7 @@
                              Padding="8,6"
                              TextChanged="UsernameSizeControl"/>
                 </Border>
-                
+
                 <TextBlock x:Name="LoginError"
                            Foreground="{DynamicResource ErrorBrush}"
                            FontFamily="Segoe UI"
@@ -223,7 +223,7 @@
                                  Padding="8,6"
                                  PasswordChanged="PasswordSizeControl"/>
                 </Border>
-                
+
                 <TextBlock x:Name="PasswordError"
                            Foreground="{DynamicResource ErrorBrush}"
                            FontFamily="Segoe UI"
@@ -244,7 +244,6 @@
                             FontFamily="Segoe UI"
                             FontSize="13"
                             Height="32"
-                            
                             Cursor="Hand"
                             Click="Login_Click"/>
                 </Border>

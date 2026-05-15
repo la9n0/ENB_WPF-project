@@ -187,27 +187,37 @@ namespace ENB_project
         }
 
         /// <summary>
-        /// Сохраняет текст заметки и обновляет EditTime. Создаёт запись NoteContent, если её ещё нет.
+        /// Сохраняет текст и EditTime заметки в транзакции.
         /// </summary>
-        public void SaveNoteContent(string login, string nodeName, string content)
+        public async Task SaveNoteContentAsync(string login, string nodeName, string content)
         {
-            var entity   = GetUserEntity(login, "UserList.SaveNoteContent");
+            var entity   = GetUserEntity(login, "UserList.SaveNoteContentAsync");
             using var db = new AppDbContext();
+            await using var tx = await db.Database.BeginTransactionAsync();
 
-            var nodeDb = db.FileSystemNodes
-                .Include(n => n.NoteContent)
-                .FirstOrDefault(n => n.Name == nodeName && n.UserId == entity.Id);
+            try
+            {
+                var nodeDb = await db.FileSystemNodes
+                    .Include(n => n.NoteContent)
+                    .FirstOrDefaultAsync(n => n.Name == nodeName && n.UserId == entity.Id);
 
-            if (nodeDb == null) return;
+                if (nodeDb == null) { await tx.RollbackAsync(); return; }
 
-            if (nodeDb.NoteContent == null)
-                nodeDb.NoteContent = new NoteContentEntity { NodeId = nodeDb.Id, Content = content };
-            else
-                nodeDb.NoteContent.Content = content;
+                if (nodeDb.NoteContent == null)
+                    nodeDb.NoteContent = new NoteContentEntity { NodeId = nodeDb.Id, Content = content };
+                else
+                    nodeDb.NoteContent.Content = content;
 
-            nodeDb.EditTime = DateOnly.FromDateTime(DateTime.Now);
+                nodeDb.EditTime = DateOnly.FromDateTime(DateTime.Now);
 
-            db.SaveChanges();
+                await db.SaveChangesAsync();
+                await tx.CommitAsync();
+            }
+            catch
+            {
+                await tx.RollbackAsync();
+                throw;
+            }
         }
 
         public void RenameNode(string login, string oldName, string newName)
@@ -239,6 +249,33 @@ namespace ENB_project
 
             nodeDb.CategoryId = categoryId;
             db.SaveChanges();
+        }
+
+        /// <summary>
+        /// Поиск заметок по имени и содержимому через LINQ to Entity.
+        /// </summary>
+        public async Task<List<SearchEfResult>> SearchNotesAsync(string login, string query)
+        {
+            var entity = GetUserEntity(login, "UserList.SearchNotesAsync");
+            using var db = new AppDbContext();
+
+            var trimmed = query.Trim();
+
+            return await db.FileSystemNodes
+                .AsNoTracking()
+                .Include(n => n.NoteContent)
+                .Include(n => n.Category)
+                .Where(n => n.UserId == entity.Id
+                         && n.ItemType == "File"
+                         && (n.Name.Contains(trimmed) ||
+                             (n.NoteContent != null && n.NoteContent.Content.Contains(trimmed))))
+                .OrderBy(n => n.Name)
+                .Select(n => new SearchEfResult
+                {
+                    Name          = n.Name,
+                    CategoryColor = n.Category != null ? n.Category.Color : null
+                })
+                .ToListAsync();
         }
 
         public List<Category> GetCategories(string login)
@@ -287,6 +324,44 @@ namespace ENB_project
             db.Categories.Remove(cat);
             db.SaveChanges();
             return true;
+        }
+        
+        // Добавь эти методы в класс UserList
+
+        public List<AdminUserInfo> GetAllUsers()
+        {
+            using var db = new AppDbContext();
+            return db.Users
+                .AsNoTracking()
+                .OrderBy(u => u.Login)
+                .Select(u => new AdminUserInfo
+                {
+                    Id        = u.Id,
+                    Login     = u.Login,
+                    Email     = u.Email,
+                    IsBlocked = u.IsBlocked,
+                    NoteCount = db.FileSystemNodes
+                        .Count(n => n.UserId == u.Id && n.ItemType == "File")
+                })
+                .ToList();
+        }
+
+        public bool SetUserBlocked(string login, bool isBlocked)
+        {
+            using var db = new AppDbContext();
+            var entity = db.Users.FirstOrDefault(u => u.Login == login);
+            if (entity == null) return false;
+
+            entity.IsBlocked = isBlocked;
+            db.SaveChanges();
+            return true;
+        }
+
+        public bool IsUserBlocked(string login)
+        {
+            using var db = new AppDbContext();
+            var entity = db.Users.AsNoTracking().FirstOrDefault(u => u.Login == login);
+            return entity?.IsBlocked ?? false;
         }
 
         private static UserEntity GetUserEntity(string login, string location)
@@ -437,5 +512,20 @@ namespace ENB_project
         public int    Id    { get; set; }
         public string Name  { get; set; } = string.Empty;
         public string Color { get; set; } = "#7C6FCD";
+    }
+
+    public class SearchEfResult
+    {
+        public string  Name          { get; set; } = string.Empty;
+        public string? CategoryColor { get; set; }
+    }
+    
+    public class AdminUserInfo
+    {
+        public int    Id        { get; set; }
+        public string Login     { get; set; } = string.Empty;
+        public string Email     { get; set; } = string.Empty;
+        public bool   IsBlocked { get; set; }
+        public int    NoteCount { get; set; }
     }
 }

@@ -138,3 +138,14 @@ D:\university\4_sem\oop\ENB\ENB\ENB_project\obj\Debug\net8.0-windows\ENB_project
 D:\university\4_sem\oop\ENB\ENB\ENB_project\obj\Debug\net8.0-windows\ENB_proj.69085842.Up2Date
 D:\university\4_sem\oop\ENB\ENB\ENB_project\obj\Debug\net8.0-windows\View\Controls\CategoryPicker.baml
 D:\university\4_sem\oop\ENB\ENB\ENB_project\obj\Debug\net8.0-windows\View\Controls\CategoryPicker.g.cs
+D:\university\4_sem\oop\ENB\ENB\ENB_project\bin\Debug\net8.0-windows\Microsoft.Extensions.Configuration.dll
+D:\university\4_sem\oop\ENB\ENB\ENB_project\bin\Debug\net8.0-windows\Microsoft.Extensions.Configuration.FileExtensions.dll
+D:\university\4_sem\oop\ENB\ENB\ENB_project\bin\Debug\net8.0-windows\Microsoft.Extensions.Configuration.Json.dll
+D:\university\4_sem\oop\ENB\ENB\ENB_project\bin\Debug\net8.0-windows\Microsoft.Extensions.FileProviders.Abstractions.dll
+D:\university\4_sem\oop\ENB\ENB\ENB_project\bin\Debug\net8.0-windows\Microsoft.Extensions.FileProviders.Physical.dll
+D:\university\4_sem\oop\ENB\ENB\ENB_project\bin\Debug\net8.0-windows\Microsoft.Extensions.FileSystemGlobbing.dll
+D:\university\4_sem\oop\ENB\ENB\ENB_project\bin\Debug\net8.0-windows\System.Text.Encodings.Web.dll
+D:\university\4_sem\oop\ENB\ENB\ENB_project\bin\Debug\net8.0-windows\System.Text.Json.dll
+D:\university\4_sem\oop\ENB\ENB\ENB_project\bin\Debug\net8.0-windows\runtimes\browser\lib\net8.0\System.Text.Encodings.Web.dll
+D:\university\4_sem\oop\ENB\ENB\ENB_project\obj\Debug\net8.0-windows\View\Windows\AdminWindow.baml
+D:\university\4_sem\oop\ENB\ENB\ENB_project\obj\Debug\net8.0-windows\View\Windows\AdminWindow.g.cs

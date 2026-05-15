@@ -15,6 +15,7 @@
     <sys:String x:Key="LogInErrorText">Данные введены неверно</sys:String>
     <sys:String x:Key="LogInRegistration">Регистрация</sys:String>
     <sys:String x:Key="LogInUserNotFound">Пользователь не найден</sys:String>
+    <sys:String x:Key="LogInUserBlocked">Аккаунт заблокирован</sys:String>
 
     <sys:String x:Key="RegisterNewUser">Новый пользователь</sys:String>
     <sys:String x:Key="RegisterLogin">Логин</sys:String>
@@ -38,13 +39,13 @@
     <sys:String x:Key="MainTooltipNewTab">Новая вкладка</sys:String>
     <sys:String x:Key="MainBtnEdit">Редактировать</sys:String>
     <sys:String x:Key="MainBtnSave">Сохранить</sys:String>
+    <sys:String x:Key="MainBtnCategory">Категория</sys:String>
     <sys:String x:Key="MainEmptyCreateFile">Создать новый файл (Ctrl + N)</sys:String>
     <sys:String x:Key="MainEmptyCreateFolder">Создать папку (Ctrl + Shift + N)</sys:String>
     <sys:String x:Key="MainDeleteConfirm">Удалить «{0}»?</sys:String>
     <sys:String x:Key="MainDeleteTitle">Подтверждение</sys:String>
     <sys:String x:Key="MainNewNoteName">Новая заметка</sys:String>
     <sys:String x:Key="MainNewFolderName">Новая папка</sys:String>
-    <sys:String x:Key="MainBtnCategory">Категория</sys:String>
     <sys:String x:Key="MainCreateTime">Дата создания</sys:String>
     <sys:String x:Key="MainEditTime">Дата последнего изменения</sys:String>
 
@@ -75,7 +76,7 @@
 
     <sys:String x:Key="SearchPlaceholder">Поиск заметок...</sys:String>
     <sys:String x:Key="SearchFound">Найдено: {0}</sys:String>
-    
+
     <sys:String x:Key="CategoryPickerTitle">Категория заметки</sys:String>
     <sys:String x:Key="CategoryPickerNone">Без категории</sys:String>
     <sys:String x:Key="CategoryPickerName">Название</sys:String>
@@ -84,5 +85,19 @@
     <sys:String x:Key="CategoryPickerSave">Сохранить</sys:String>
     <sys:String x:Key="CategoryPickerCancel">Отмена</sys:String>
     <sys:String x:Key="CategoryPickerClose">Закрыть</sys:String>
+
+    <sys:String x:Key="AdminTitle">Пользователи</sys:String>
+    <sys:String x:Key="AdminRefresh">↻ Обновить</sys:String>
+    <sys:String x:Key="AdminTotal">Всего:</sys:String>
+    <sys:String x:Key="AdminColLogin">Логин</sys:String>
+    <sys:String x:Key="AdminColEmail">Email</sys:String>
+    <sys:String x:Key="AdminColNotes">Заметок</sys:String>
+    <sys:String x:Key="AdminColActions">Действия</sys:String>
+    <sys:String x:Key="AdminBlock">Заблокировать</sys:String>
+    <sys:String x:Key="AdminUnblock">Разблокировать</sys:String>
+    <sys:String x:Key="AdminDelete">Удалить</sys:String>
+    <sys:String x:Key="AdminDeleteConfirm">Удалить пользователя «{0}»?</sys:String>
+    <sys:String x:Key="AdminDeleteTitle">Подтверждение</sys:String>
+    <sys:String x:Key="AdminEmpty">Пользователей нет</sys:String>
 
 </ResourceDictionary>

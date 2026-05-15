@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace ENB_project
 {
@@ -10,8 +11,14 @@ namespace ENB_project
         public DbSet<CategoryEntity>       Categories      { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder options)
-            => options.UseSqlServer(
-                "Server=localhost;Database=ENB;Trusted_Connection=True;TrustServerCertificate=True;");
+        {
+            var config = new ConfigurationBuilder()
+                .SetBasePath(AppContext.BaseDirectory)
+                .AddJsonFile("appsettings.json", optional: false)
+                .Build();
+
+            options.UseSqlServer(config.GetConnectionString("ENB"));
+        }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -25,6 +32,7 @@ namespace ENB_project
                 e.Property(u => u.Email).HasMaxLength(255).IsRequired();
                 e.Property(u => u.Theme).HasMaxLength(20).IsRequired().HasDefaultValue("Dark");
                 e.Property(u => u.Language).HasMaxLength(10).IsRequired().HasDefaultValue("ru");
+                e.Property(u => u.IsBlocked).IsRequired().HasDefaultValue(false);
             });
 
             modelBuilder.Entity<FileSystemNodeEntity>(e =>
@@ -34,8 +42,8 @@ namespace ENB_project
                 e.Property(n => n.Name).HasMaxLength(255).IsRequired();
                 e.Property(n => n.ItemType).HasMaxLength(10).IsRequired().HasDefaultValue("File");
                 e.Property(n => n.SortOrder).IsRequired().HasDefaultValue(0);
-                e.Property(n=> n.CreateTime).IsRequired();
-                e.Property(n=> n.EditTime).IsRequired();
+                e.Property(n => n.CreateTime).IsRequired();
+                e.Property(n => n.EditTime).IsRequired();
 
                 e.HasOne(n => n.User)
                  .WithMany(u => u.Nodes)
@@ -85,12 +93,13 @@ namespace ENB_project
 
     public class UserEntity
     {
-        public int    Id       { get; set; }
-        public string Login    { get; set; } = string.Empty;
-        public string Password { get; set; } = string.Empty;
-        public string Email    { get; set; } = string.Empty;
-        public string Theme    { get; set; } = "Dark";
-        public string Language { get; set; } = "ru";
+        public int    Id        { get; set; }
+        public string Login     { get; set; } = string.Empty;
+        public string Password  { get; set; } = string.Empty;
+        public string Email     { get; set; } = string.Empty;
+        public string Theme     { get; set; } = "Dark";
+        public string Language  { get; set; } = "ru";
+        public bool   IsBlocked { get; set; } = false;
 
         public List<FileSystemNodeEntity> Nodes      { get; set; } = new();
         public List<CategoryEntity>       Categories { get; set; } = new();
@@ -98,15 +107,15 @@ namespace ENB_project
 
     public class FileSystemNodeEntity
     {
-        public int    Id         { get; set; }
-        public int    UserId     { get; set; }
-        public int?   ParentId   { get; set; }
-        public int?   CategoryId { get; set; }
-        public string Name       { get; set; } = string.Empty;
-        public string ItemType   { get; set; } = "File";
-        public int    SortOrder  { get; set; } = 0;
-        public DateOnly EditTime { get; set; }
+        public int      Id         { get; set; }
+        public int      UserId     { get; set; }
+        public int?     ParentId   { get; set; }
+        public int?     CategoryId { get; set; }
+        public string   Name       { get; set; } = string.Empty;
+        public string   ItemType   { get; set; } = "File";
+        public int      SortOrder  { get; set; } = 0;
         public DateOnly CreateTime { get; set; }
+        public DateOnly EditTime   { get; set; }
 
         public UserEntity                 User        { get; set; } = null!;
         public FileSystemNodeEntity?      Parent      { get; set; }
