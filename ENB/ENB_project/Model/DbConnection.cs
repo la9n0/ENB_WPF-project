@@ -9,6 +9,7 @@ namespace ENB_project
         public DbSet<FileSystemNodeEntity> FileSystemNodes { get; set; }
         public DbSet<NoteContentEntity>    NoteContents    { get; set; }
         public DbSet<CategoryEntity>       Categories      { get; set; }
+        public DbSet<ReminderEntity>       Reminders       { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder options)
         {
@@ -88,6 +89,25 @@ namespace ENB_project
                  .HasForeignKey(c => c.UserId)
                  .OnDelete(DeleteBehavior.Cascade);
             });
+
+            modelBuilder.Entity<ReminderEntity>(e =>
+            {
+                e.ToTable("Reminders");
+                e.HasKey(r => r.Id);
+                e.Property(r => r.Note).HasMaxLength(255).IsRequired().HasDefaultValue("");
+                e.Property(r => r.RemindAt).IsRequired();
+                e.Property(r => r.IsTriggered).IsRequired().HasDefaultValue(false);
+
+                e.HasOne(r => r.User)
+                 .WithMany(u => u.Reminders)
+                 .HasForeignKey(r => r.UserId)
+                 .OnDelete(DeleteBehavior.Cascade);
+
+                e.HasOne(r => r.Node)
+                 .WithOne(n => n.Reminder)
+                 .HasForeignKey<ReminderEntity>(r => r.NodeId)
+                 .OnDelete(DeleteBehavior.NoAction);
+            });
         }
     }
 
@@ -103,6 +123,7 @@ namespace ENB_project
 
         public List<FileSystemNodeEntity> Nodes      { get; set; } = new();
         public List<CategoryEntity>       Categories { get; set; } = new();
+        public List<ReminderEntity>       Reminders  { get; set; } = new();
     }
 
     public class FileSystemNodeEntity
@@ -122,6 +143,7 @@ namespace ENB_project
         public List<FileSystemNodeEntity> Children    { get; set; } = new();
         public NoteContentEntity?         NoteContent { get; set; }
         public CategoryEntity?            Category    { get; set; }
+        public ReminderEntity?            Reminder    { get; set; }
     }
 
     public class NoteContentEntity
@@ -142,5 +164,18 @@ namespace ENB_project
 
         public UserEntity                 User  { get; set; } = null!;
         public List<FileSystemNodeEntity> Nodes { get; set; } = new();
+    }
+
+    public class ReminderEntity
+    {
+        public int      Id          { get; set; }
+        public int      UserId      { get; set; }
+        public int      NodeId      { get; set; }
+        public DateTime RemindAt    { get; set; }
+        public string   Note        { get; set; } = string.Empty;
+        public bool     IsTriggered { get; set; } = false;
+
+        public UserEntity           User { get; set; } = null!;
+        public FileSystemNodeEntity Node { get; set; } = null!;
     }
 }

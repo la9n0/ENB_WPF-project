@@ -16,7 +16,8 @@
             BorderBrush="{DynamicResource BorderStrongBrush}"
             BorderThickness="1"
             CornerRadius="8"
-            ClipToBounds="True">
+            ClipToBounds="True"
+            MouseLeftButtonDown="Border_MouseLeftButtonDown">
         <StackPanel Margin="16">
 
             <TextBlock Text="{DynamicResource CategoryPickerTitle}"

@@ -12,19 +12,21 @@ namespace ENB_project
             set => _name = value ?? string.Empty;
         }
 
-        public FileItemType ItemType { get; set; } = FileItemType.File;
+        public FileItemType ItemType   { get; set; } = FileItemType.File;
+        public bool         IsFolder   => ItemType == FileItemType.Folder;
 
-        public bool IsFolder => ItemType == FileItemType.Folder;
-
-        public string? Content       { get; set; }
-        public int?    CategoryId    { get; set; }
-        public string? CategoryColor { get; set; }
-        public DateOnly EditTime { get; set; }
-        public DateOnly CreateTime { get; set; }
+        public string?   Content          { get; set; }
+        public int?      CategoryId       { get; set; }
+        public string?   CategoryColor    { get; set; }
+        public DateOnly  EditTime         { get; set; }
+        public DateOnly  CreateTime       { get; set; }
+        public int?      ReminderId       { get; set; }
+        public DateTime? ReminderAt       { get; set; }
+        public string?   ReminderNote     { get; set; }
+        public bool      ReminderTriggered { get; set; }
 
         public List<FileSystemNode> Children { get; set; } = new();
-
-        public FileSystemNode? Parent { get; internal set; }
+        public FileSystemNode?      Parent   { get; internal set; }
 
         public FileSystemNode() { }
 
@@ -93,7 +95,6 @@ namespace ENB_project
                 if (removed) node.Parent = null;
                 return removed;
             }
-
             return Roots.Remove(node);
         }
 
@@ -101,7 +102,6 @@ namespace ENB_project
         {
             foreach (var root in Roots)
                 ClearRecursive(root);
-
             Roots.Clear();
         }
 

@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using ENB_project.Controls;
 
 namespace ENB_project
@@ -48,6 +49,8 @@ namespace ENB_project
         private bool _isUserMenuOpen = false;
         private bool _isSearchOpen   = false;
 
+        private readonly System.Windows.Threading.DispatcherTimer _reminderTimer = new();
+
         public MainWindow(string login)
         {
             InitializeComponent();
@@ -56,8 +59,16 @@ namespace ENB_project
             BindShortcuts();
             AddTab();
 
+            _reminderTimer.Interval = TimeSpan.FromMinutes(1);
+            _reminderTimer.Tick    += ReminderTimer_Tick;
+            _reminderTimer.Start();
+
             EnbFunctional.LanguageChanged += OnLanguageChanged;
-            Closed += (_, _) => EnbFunctional.LanguageChanged -= OnLanguageChanged;
+            Closed += (_, _) =>
+            {
+                EnbFunctional.LanguageChanged -= OnLanguageChanged;
+                _reminderTimer.Stop();
+            };
         }
 
         private void OnLanguageChanged(string lang)
@@ -127,6 +138,64 @@ namespace ENB_project
                 new KeyGesture(Key.F2)));
         }
 
+        protected override void OnSourceInitialized(EventArgs e)
+        {
+            base.OnSourceInitialized(e);
+            var source = PresentationSource.FromVisual(this)
+                as System.Windows.Interop.HwndSource;
+            source?.AddHook(WndProc);
+        }
+
+        private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam,
+            ref bool handled)
+        {
+            if (msg == 0x0084)
+            {
+                var pos   = new System.Drawing.Point(
+                    (int)lParam & 0xFFFF, (int)lParam >> 16);
+                var local = PointFromScreen(new Point(pos.X, pos.Y));
+                const int edge = 6;
+
+                bool left   = local.X <= edge;
+                bool right  = local.X >= ActualWidth  - edge;
+                bool top    = local.Y <= edge;
+                bool bottom = local.Y >= ActualHeight - edge;
+
+                if (top    && left)  { handled = true; return (IntPtr)13; }
+                if (top    && right) { handled = true; return (IntPtr)14; }
+                if (bottom && left)  { handled = true; return (IntPtr)16; }
+                if (bottom && right) { handled = true; return (IntPtr)17; }
+                if (left)            { handled = true; return (IntPtr)10; }
+                if (right)           { handled = true; return (IntPtr)11; }
+                if (top)             { handled = true; return (IntPtr)12; }
+                if (bottom)          { handled = true; return (IntPtr)15; }
+            }
+            return IntPtr.Zero;
+        }
+
+        private void ReminderTimer_Tick(object? sender, EventArgs e)
+        {
+            var triggered = _userList.GetAndMarkTriggeredReminders(_user.Login);
+            if (triggered.Count == 0) return;
+
+            _user = _userList.GetUser(_user.Login) ?? _user;
+            MyFileManager.LoadFromTree(_user.Tree);
+
+            if (_isSearchOpen)
+                MySearchPanel.SetTree(_user.Tree);
+
+            foreach (var reminder in triggered)
+            {
+                var notif = new ReminderNotification(reminder);
+                notif.Closed += (_, _) =>
+                {
+                    if (notif.OpenNote)
+                        Dispatcher.Invoke(() => OpenNoteInTab(notif.NoteName));
+                };
+                notif.Show();
+            }
+        }
+
         private void FoldersButton_Click(object sender, RoutedEventArgs e)
         {
             if (_isSearchOpen) CloseSearch();
@@ -140,18 +209,18 @@ namespace ENB_project
 
         private void OpenSearch()
         {
-            _isSearchOpen              = true;
+            _isSearchOpen                 = true;
             FileManagerToolbar.Visibility = Visibility.Collapsed;
-            MyFileManager.Visibility   = Visibility.Collapsed;
-            MySearchPanel.Visibility   = Visibility.Visible;
+            MyFileManager.Visibility      = Visibility.Collapsed;
+            MySearchPanel.Visibility      = Visibility.Visible;
             MySearchPanel.SetTree(_user.Tree);
         }
 
         private void CloseSearch()
         {
-            _isSearchOpen              = false;
-            MySearchPanel.Visibility   = Visibility.Collapsed;
-            MyFileManager.Visibility   = Visibility.Visible;
+            _isSearchOpen                 = false;
+            MySearchPanel.Visibility      = Visibility.Collapsed;
+            MyFileManager.Visibility      = Visibility.Visible;
             FileManagerToolbar.Visibility = Visibility.Visible;
         }
 
@@ -169,6 +238,7 @@ namespace ENB_project
             EmptyState.Visibility     = Visibility.Collapsed;
             EditSaveBtn.Visibility    = Visibility.Collapsed;
             CategoryBtn.Visibility    = Visibility.Collapsed;
+            ReminderBtn.Visibility    = Visibility.Collapsed;
             PageTitle.Visibility      = Visibility.Collapsed;
             PageTitleEdit.Visibility  = Visibility.Collapsed;
             NoteEditTime.Visibility   = Visibility.Collapsed;
@@ -303,9 +373,12 @@ namespace ENB_project
             PageTitle.Visibility       = Visibility.Visible;
             EditSaveBtn.Visibility     = Visibility.Visible;
             CategoryBtn.Visibility     = Visibility.Visible;
+            ReminderBtn.Visibility     = Visibility.Visible;
             NoteCreateTime.Visibility  = Visibility.Visible;
             NoteEditTime.Visibility    = Visibility.Visible;
             EditSaveBtn.Content        = TryFindResource("MainBtnEdit") ?? "Редактировать";
+
+            UpdateReminderButton(node);
 
             if (_activeTab != null) _activeTab.Title = node.Name;
         }
@@ -322,8 +395,66 @@ namespace ENB_project
             PageTitle.Visibility       = Visibility.Visible;
             EditSaveBtn.Visibility     = Visibility.Collapsed;
             CategoryBtn.Visibility     = Visibility.Collapsed;
+            ReminderBtn.Visibility     = Visibility.Collapsed;
             NoteCreateTime.Visibility  = Visibility.Collapsed;
             NoteEditTime.Visibility    = Visibility.Collapsed;
+        }
+
+        private void Reminder_Click(object sender, RoutedEventArgs e)
+        {
+            if (_activeTab?.NoteName == null) return;
+
+            var node = _user.Tree.FindByName(_activeTab.NoteName);
+            if (node == null) return;
+
+            Reminder? existing = node.ReminderId.HasValue
+                ? _userList.GetReminder(_user.Login, _activeTab.NoteName)
+                : null;
+
+            var dialog = new ReminderPicker(existing);
+            dialog.Owner = this;
+            if (dialog.ShowDialog() != true) return;
+
+            if (dialog.Deleted)
+            {
+                _userList.DeleteReminder(_user.Login, _activeTab.NoteName);
+                node.ReminderId        = null;
+                node.ReminderAt        = null;
+                node.ReminderNote      = null;
+                node.ReminderTriggered = false;
+
+                var item = MyFileManager.FindItemByName(_activeTab.NoteName);
+                if (item != null) item.HasActiveReminder = false;
+            }
+            else if (dialog.Saved)
+            {
+                var reminder = _userList.SetReminder(
+                    _user.Login, _activeTab.NoteName,
+                    dialog.SelectedDateTime, dialog.NoteText);
+
+                node.ReminderId        = reminder.Id;
+                node.ReminderAt        = reminder.RemindAt;
+                node.ReminderNote      = reminder.Note;
+                node.ReminderTriggered = false;
+
+                var item = MyFileManager.FindItemByName(_activeTab.NoteName);
+                if (item != null) item.HasActiveReminder = false;
+            }
+
+            UpdateReminderButton(node);
+        }
+
+        private void UpdateReminderButton(FileSystemNode node)
+        {
+            if (node.ReminderId.HasValue)
+            {
+                ReminderBtn.Foreground = new SolidColorBrush(
+                    (Color)ColorConverter.ConvertFromString("#E5C07B"));
+            }
+            else
+            {
+                ReminderBtn.ClearValue(ForegroundProperty);
+            }
         }
 
         private void Category_Click(object sender, RoutedEventArgs e)
@@ -628,7 +759,10 @@ namespace ENB_project
 
             RenameBox.Visibility = Visibility.Collapsed;
         }
-        
+
+        /// <summary>
+        /// Отменяет переименование. Если узел был только что создан — удаляет его из дерева и БД.
+        /// </summary>
         private void CancelRename()
         {
             RenameBox.Visibility = Visibility.Collapsed;
@@ -654,7 +788,7 @@ namespace ENB_project
         private void TitleBar_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             if (e.ClickCount == 2) MaximizeButton_Click(sender, e);
-            else DragMove();
+            else if (e.ButtonState == MouseButtonState.Pressed) DragMove();
         }
 
         private void CloseButton_Click(object sender, RoutedEventArgs e)

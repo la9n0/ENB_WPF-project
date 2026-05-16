@@ -51,6 +51,41 @@ namespace ENB_project
             LoadUsers();
         }
 
+        protected override void OnSourceInitialized(EventArgs e)
+        {
+            base.OnSourceInitialized(e);
+            var source = PresentationSource.FromVisual(this)
+                as System.Windows.Interop.HwndSource;
+            source?.AddHook(WndProc);
+        }
+
+        private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam,
+            ref bool handled)
+        {
+            if (msg == 0x0084)
+            {
+                var pos   = new System.Drawing.Point(
+                    (int)lParam & 0xFFFF, (int)lParam >> 16);
+                var local = PointFromScreen(new Point(pos.X, pos.Y));
+                const int edge = 6;
+
+                bool left   = local.X <= edge;
+                bool right  = local.X >= ActualWidth  - edge;
+                bool top    = local.Y <= edge;
+                bool bottom = local.Y >= ActualHeight - edge;
+
+                if (top    && left)  { handled = true; return (IntPtr)13; }
+                if (top    && right) { handled = true; return (IntPtr)14; }
+                if (bottom && left)  { handled = true; return (IntPtr)16; }
+                if (bottom && right) { handled = true; return (IntPtr)17; }
+                if (left)            { handled = true; return (IntPtr)10; }
+                if (right)           { handled = true; return (IntPtr)11; }
+                if (top)             { handled = true; return (IntPtr)12; }
+                if (bottom)          { handled = true; return (IntPtr)15; }
+            }
+            return IntPtr.Zero;
+        }
+
         private void LoadUsers()
         {
             var users = _userList.GetAllUsers();
@@ -111,7 +146,7 @@ namespace ENB_project
         private void TitleBar_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             if (e.ClickCount == 2) MaximizeButton_Click(sender, e);
-            else DragMove();
+            else if (e.ButtonState == MouseButtonState.Pressed) DragMove();
         }
 
         private void CloseButton_Click(object sender, RoutedEventArgs e)

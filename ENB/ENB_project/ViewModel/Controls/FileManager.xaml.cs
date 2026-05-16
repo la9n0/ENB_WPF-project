@@ -13,12 +13,13 @@ namespace ENB_project.Controls
 
     public class FileManagerItem : INotifyPropertyChanged
     {
-        private string  _name          = string.Empty;
-        private bool    _isExpanded    = false;
-        private bool    _isSelected    = false;
-        private bool    _isDragOver    = false;
-        private string? _categoryColor = null;
-        private FileItemType _itemType = FileItemType.File;
+        private string   _name             = string.Empty;
+        private bool     _isExpanded       = false;
+        private bool     _isSelected       = false;
+        private bool     _isDragOver       = false;
+        private string?  _categoryColor    = null;
+        private bool     _hasActiveReminder = false;
+        private FileItemType _itemType     = FileItemType.File;
 
         public string Name
         {
@@ -81,6 +82,12 @@ namespace ENB_project.Controls
                 }
                 catch { return null; }
             }
+        }
+
+        public bool HasActiveReminder
+        {
+            get => _hasActiveReminder;
+            set { _hasActiveReminder = value; OnPropertyChanged(); }
         }
 
         public ObservableCollection<FileManagerItem> Children { get; set; } = new();
@@ -409,7 +416,8 @@ namespace ENB_project.Controls
         {
             var item = new FileManagerItem(node.Name, node.ItemType)
             {
-                CategoryColor = node.CategoryColor
+                CategoryColor     = node.CategoryColor,
+                HasActiveReminder = node.ReminderTriggered
             };
 
             foreach (var child in node.Children)

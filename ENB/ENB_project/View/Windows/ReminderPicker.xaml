@@ -1,0 +1,180 @@
+﻿<Window x:Class="ENB_project.ReminderPicker"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Напоминание" Width="300" SizeToContent="Height"
+        WindowStartupLocation="CenterOwner"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False">
+
+    <Window.Effect>
+        <DropShadowEffect BlurRadius="20" ShadowDepth="0" Opacity="0.5" Color="#000000"/>
+    </Window.Effect>
+
+    <Border Background="{DynamicResource WindowBackgroundBrush}"
+            BorderBrush="{DynamicResource BorderStrongBrush}"
+            BorderThickness="1"
+            CornerRadius="8"
+            ClipToBounds="True"
+            MouseLeftButtonDown="Border_MouseLeftButtonDown">
+        <StackPanel Margin="16">
+
+            <TextBlock Text="{DynamicResource ReminderTitle}"
+                       Foreground="{DynamicResource ForegroundDimBrush}"
+                       FontFamily="Segoe UI"
+                       FontSize="15"
+                       FontWeight="SemiBold"
+                       Margin="0,0,0,14"/>
+
+            <TextBlock Text="{DynamicResource ReminderDate}"
+                       Foreground="{DynamicResource ForegroundGhostBrush}"
+                       FontFamily="Segoe UI"
+                       FontSize="11"
+                       Margin="0,0,0,4"/>
+
+            <Border Background="{DynamicResource SurfaceBrush}"
+                    BorderBrush="{DynamicResource BorderMutedBrush}"
+                    BorderThickness="1" CornerRadius="4"
+                    Margin="0,0,0,10">
+                <DatePicker x:Name="DatePick"
+                            Background="Transparent"
+                            Foreground="{DynamicResource ForegroundPrimaryBrush}"
+                            BorderThickness="0"
+                            FontFamily="Segoe UI"
+                            FontSize="12.5"
+                            Padding="6,4"/>
+            </Border>
+
+            <TextBlock Text="{DynamicResource ReminderTime}"
+                       Foreground="{DynamicResource ForegroundGhostBrush}"
+                       FontFamily="Segoe UI"
+                       FontSize="11"
+                       Margin="0,0,0,4"/>
+
+            <Grid Margin="0,0,0,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Column="0"
+                        Background="{DynamicResource SurfaceBrush}"
+                        BorderBrush="{DynamicResource BorderMutedBrush}"
+                        BorderThickness="1" CornerRadius="4">
+                    <TextBox x:Name="HourBox"
+                             Background="Transparent"
+                             Foreground="{DynamicResource ForegroundPrimaryBrush}"
+                             CaretBrush="{DynamicResource ForegroundPrimaryBrush}"
+                             BorderThickness="0"
+                             FontFamily="Segoe UI"
+                             FontSize="13"
+                             TextAlignment="Center"
+                             Padding="8,5"
+                             MaxLength="2"
+                             Text="09"
+                             PreviewTextInput="NumberOnly"/>
+                </Border>
+
+                <TextBlock Grid.Column="1"
+                           Text=":"
+                           Foreground="{DynamicResource ForegroundMutedBrush}"
+                           FontFamily="Segoe UI"
+                           FontSize="16"
+                           VerticalAlignment="Center"
+                           Margin="8,0"/>
+
+                <Border Grid.Column="2"
+                        Background="{DynamicResource SurfaceBrush}"
+                        BorderBrush="{DynamicResource BorderMutedBrush}"
+                        BorderThickness="1" CornerRadius="4">
+                    <TextBox x:Name="MinuteBox"
+                             Background="Transparent"
+                             Foreground="{DynamicResource ForegroundPrimaryBrush}"
+                             CaretBrush="{DynamicResource ForegroundPrimaryBrush}"
+                             BorderThickness="0"
+                             FontFamily="Segoe UI"
+                             FontSize="13"
+                             TextAlignment="Center"
+                             Padding="8,5"
+                             MaxLength="2"
+                             Text="00"
+                             PreviewTextInput="NumberOnly"/>
+                </Border>
+            </Grid>
+
+            <TextBlock Text="{DynamicResource ReminderNote}"
+                       Foreground="{DynamicResource ForegroundGhostBrush}"
+                       FontFamily="Segoe UI"
+                       FontSize="11"
+                       Margin="0,0,0,4"/>
+
+            <Border Background="{DynamicResource SurfaceBrush}"
+                    BorderBrush="{DynamicResource BorderMutedBrush}"
+                    BorderThickness="1" CornerRadius="4"
+                    Margin="0,0,0,14">
+                <TextBox x:Name="NoteBox"
+                         Background="Transparent"
+                         Foreground="{DynamicResource ForegroundPrimaryBrush}"
+                         CaretBrush="{DynamicResource ForegroundPrimaryBrush}"
+                         BorderThickness="0"
+                         FontFamily="Segoe UI"
+                         FontSize="12.5"
+                         Padding="8,5"
+                         MaxLength="255"/>
+            </Border>
+
+            <TextBlock x:Name="ErrorText"
+                       Foreground="{DynamicResource ErrorBrush}"
+                       FontFamily="Segoe UI"
+                       FontSize="11"
+                       Margin="0,0,0,10"
+                       Visibility="Collapsed"
+                       TextWrapping="Wrap"/>
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="8"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="8"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Button Grid.Column="0"
+                        x:Name="DeleteBtn"
+                        Content="{DynamicResource ReminderDelete}"
+                        Background="Transparent"
+                        BorderBrush="#7C2D2D"
+                        BorderThickness="1"
+                        Foreground="#E06C75"
+                        FontFamily="Segoe UI" FontSize="12"
+                        Height="28" Cursor="Hand"
+                        Visibility="Collapsed"
+                        Click="Delete_Click"/>
+
+                <Button Grid.Column="2"
+                        Content="{DynamicResource ReminderCancel}"
+                        Background="{DynamicResource SurfaceBrush}"
+                        BorderBrush="{DynamicResource BorderMutedBrush}"
+                        BorderThickness="1"
+                        Foreground="{DynamicResource ForegroundMutedBrush}"
+                        FontFamily="Segoe UI" FontSize="12"
+                        Height="28" Cursor="Hand"
+                        Click="Cancel_Click"/>
+
+                <Border Grid.Column="4"
+                        Background="{DynamicResource AccentBrush}"
+                        CornerRadius="4" Cursor="Hand">
+                    <Button Content="{DynamicResource ReminderSave}"
+                            Background="Transparent" BorderThickness="0"
+                            Foreground="White"
+                            FontFamily="Segoe UI" FontSize="12"
+                            Height="28" Cursor="Hand"
+                            Click="Save_Click"/>
+                </Border>
+            </Grid>
+        </StackPanel>
+    </Border>
+</Window>

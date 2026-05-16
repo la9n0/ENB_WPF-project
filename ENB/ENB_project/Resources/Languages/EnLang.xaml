@@ -100,4 +100,19 @@
     <sys:String x:Key="AdminDeleteTitle">Confirmation</sys:String>
     <sys:String x:Key="AdminEmpty">No users found</sys:String>
 
+    <sys:String x:Key="ReminderTitle">Reminder</sys:String>
+    <sys:String x:Key="ReminderDate">Date</sys:String>
+    <sys:String x:Key="ReminderTime">Time</sys:String>
+    <sys:String x:Key="ReminderNote">Note (optional)</sys:String>
+    <sys:String x:Key="ReminderSave">Save</sys:String>
+    <sys:String x:Key="ReminderCancel">Cancel</sys:String>
+    <sys:String x:Key="ReminderDelete">Delete</sys:String>
+    <sys:String x:Key="ReminderErrorDate">Select a date</sys:String>
+    <sys:String x:Key="ReminderErrorHour">Hours: value from 0 to 23</sys:String>
+    <sys:String x:Key="ReminderErrorMinute">Minutes: value from 0 to 59</sys:String>
+    <sys:String x:Key="ReminderErrorPast">Date and time must be in the future</sys:String>
+    <sys:String x:Key="ReminderNotifTitle">Reminder</sys:String>
+    <sys:String x:Key="ReminderNotifOpen">Open note</sys:String>
+    <sys:String x:Key="ReminderNotifClose">Close</sys:String>
+
 </ResourceDictionary>

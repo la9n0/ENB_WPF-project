@@ -363,6 +363,128 @@ namespace ENB_project
             var entity = db.Users.AsNoTracking().FirstOrDefault(u => u.Login == login);
             return entity?.IsBlocked ?? false;
         }
+        
+        public Reminder? GetReminder(string login, string nodeName)
+        {
+            var entity   = GetUserEntity(login, "UserList.GetReminder");
+            using var db = new AppDbContext();
+
+            var nodeDb = db.FileSystemNodes
+                .AsNoTracking()
+                .FirstOrDefault(n => n.Name == nodeName && n.UserId == entity.Id);
+
+            if (nodeDb == null) return null;
+
+            var reminder = db.Reminders
+                .AsNoTracking()
+                .FirstOrDefault(r => r.NodeId == nodeDb.Id);
+
+            if (reminder == null) return null;
+
+            return new Reminder
+            {
+                Id          = reminder.Id,
+                NodeId      = reminder.NodeId,
+                RemindAt    = reminder.RemindAt,
+                Note        = reminder.Note,
+                IsTriggered = reminder.IsTriggered
+            };
+        }
+
+        public Reminder SetReminder(string login, string nodeName, DateTime remindAt, string note)
+        {
+            var entity   = GetUserEntity(login, "UserList.SetReminder");
+            using var db = new AppDbContext();
+
+            var nodeDb = db.FileSystemNodes
+                .Include(n => n.Reminder)
+                .FirstOrDefault(n => n.Name == nodeName && n.UserId == entity.Id)
+                ?? throw MyExceptions.Navigation($"Узел «{nodeName}» не найден", "UserList.SetReminder");
+
+            if (nodeDb.Reminder == null)
+            {
+                var reminder = new ReminderEntity
+                {
+                    UserId      = entity.Id,
+                    NodeId      = nodeDb.Id,
+                    RemindAt    = remindAt,
+                    Note        = note,
+                    IsTriggered = false
+                };
+                db.Reminders.Add(reminder);
+                db.SaveChanges();
+
+                return new Reminder
+                {
+                    Id          = reminder.Id,
+                    NodeId      = reminder.NodeId,
+                    RemindAt    = reminder.RemindAt,
+                    Note        = reminder.Note,
+                    IsTriggered = reminder.IsTriggered
+                };
+            }
+            else
+            {
+                nodeDb.Reminder.RemindAt    = remindAt;
+                nodeDb.Reminder.Note        = note;
+                nodeDb.Reminder.IsTriggered = false;
+                db.SaveChanges();
+
+                return new Reminder
+                {
+                    Id          = nodeDb.Reminder.Id,
+                    NodeId      = nodeDb.Reminder.NodeId,
+                    RemindAt    = nodeDb.Reminder.RemindAt,
+                    Note        = nodeDb.Reminder.Note,
+                    IsTriggered = nodeDb.Reminder.IsTriggered
+                };
+            }
+        }
+
+        public bool DeleteReminder(string login, string nodeName)
+        {
+            var entity   = GetUserEntity(login, "UserList.DeleteReminder");
+            using var db = new AppDbContext();
+
+            var nodeDb = db.FileSystemNodes
+                .FirstOrDefault(n => n.Name == nodeName && n.UserId == entity.Id);
+
+            if (nodeDb == null) return false;
+
+            var reminder = db.Reminders.FirstOrDefault(r => r.NodeId == nodeDb.Id);
+            if (reminder == null) return false;
+
+            db.Reminders.Remove(reminder);
+            db.SaveChanges();
+            return true;
+        }
+
+        public List<TriggeredReminder> GetAndMarkTriggeredReminders(string login)
+        {
+            var entity   = GetUserEntity(login, "UserList.GetAndMarkTriggeredReminders");
+            using var db = new AppDbContext();
+
+            var now      = DateTime.Now;
+            var triggers = db.Reminders
+                .Include(r => r.Node)
+                .Where(r => r.UserId == entity.Id
+                         && !r.IsTriggered
+                         && r.RemindAt <= now)
+                .ToList();
+
+            foreach (var t in triggers)
+                t.IsTriggered = true;
+
+            if (triggers.Count > 0)
+                db.SaveChanges();
+
+            return triggers.Select(t => new TriggeredReminder
+            {
+                NoteName   = t.Node.Name,
+                Note       = t.Note,
+                RemindAt   = t.RemindAt
+            }).ToList();
+        }
 
         private static UserEntity GetUserEntity(string login, string location)
         {
@@ -434,6 +556,7 @@ namespace ENB_project
             var allNodes = db.FileSystemNodes
                 .AsNoTracking()
                 .Include(n => n.Category)
+                .Include(n => n.Reminder)
                 .Where(n => n.UserId == userId)
                 .OrderBy(n => n.SortOrder)
                 .ToList();
@@ -444,16 +567,22 @@ namespace ENB_project
                 .Where(c => nodeIds.Contains(c.NodeId))
                 .ToDictionary(c => c.NodeId, c => c.Content);
 
+            var now     = DateTime.Now;
             var nodeMap = allNodes.ToDictionary(
                 n => n.Id,
                 n => new FileSystemNode(n.Name,
                     n.ItemType == "Folder" ? FileItemType.Folder : FileItemType.File)
                 {
-                    Content       = contentMap.GetValueOrDefault(n.Id),
-                    CategoryId    = n.CategoryId,
-                    CategoryColor = n.Category?.Color,
-                    CreateTime    = n.CreateTime,
-                    EditTime      = n.EditTime
+                    Content           = contentMap.GetValueOrDefault(n.Id),
+                    CategoryId        = n.CategoryId,
+                    CategoryColor     = n.Category?.Color,
+                    CreateTime        = n.CreateTime,
+                    EditTime          = n.EditTime,
+                    ReminderId        = n.Reminder?.Id,
+                    ReminderAt        = n.Reminder?.RemindAt,
+                    ReminderNote      = n.Reminder?.Note,
+                    ReminderTriggered = n.Reminder != null && n.Reminder.IsTriggered
+                                                           && n.Reminder.RemindAt <= now
                 });
 
             var tree = new FileSystemTree();
@@ -527,5 +656,21 @@ namespace ENB_project
         public string Email     { get; set; } = string.Empty;
         public bool   IsBlocked { get; set; }
         public int    NoteCount { get; set; }
+    }
+    
+    public class Reminder
+    {
+        public int      Id          { get; set; }
+        public int      NodeId      { get; set; }
+        public DateTime RemindAt    { get; set; }
+        public string   Note        { get; set; } = string.Empty;
+        public bool     IsTriggered { get; set; }
+    }
+
+    public class TriggeredReminder
+    {
+        public string   NoteName { get; set; } = string.Empty;
+        public string   Note     { get; set; } = string.Empty;
+        public DateTime RemindAt { get; set; }
     }
 }

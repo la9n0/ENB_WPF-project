@@ -100,4 +100,19 @@
     <sys:String x:Key="AdminDeleteTitle">Подтверждение</sys:String>
     <sys:String x:Key="AdminEmpty">Пользователей нет</sys:String>
 
+    <sys:String x:Key="ReminderTitle">Напоминание</sys:String>
+    <sys:String x:Key="ReminderDate">Дата</sys:String>
+    <sys:String x:Key="ReminderTime">Время</sys:String>
+    <sys:String x:Key="ReminderNote">Текст напоминания (необязательно)</sys:String>
+    <sys:String x:Key="ReminderSave">Сохранить</sys:String>
+    <sys:String x:Key="ReminderCancel">Отмена</sys:String>
+    <sys:String x:Key="ReminderDelete">Удалить</sys:String>
+    <sys:String x:Key="ReminderErrorDate">Выберите дату</sys:String>
+    <sys:String x:Key="ReminderErrorHour">Часы: значение от 0 до 23</sys:String>
+    <sys:String x:Key="ReminderErrorMinute">Минуты: значение от 0 до 59</sys:String>
+    <sys:String x:Key="ReminderErrorPast">Дата и время должны быть в будущем</sys:String>
+    <sys:String x:Key="ReminderNotifTitle">Напоминание</sys:String>
+    <sys:String x:Key="ReminderNotifOpen">Открыть заметку</sys:String>
+    <sys:String x:Key="ReminderNotifClose">Закрыть</sys:String>
+
 </ResourceDictionary>

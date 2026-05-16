@@ -91,8 +91,9 @@
                         <ColumnDefinition Width="{Binding IndentWidth}"/>
                         <ColumnDefinition Width="16"/>
                         <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="16"/>
                     </Grid.ColumnDefinitions>
-                    
+
                     <Rectangle x:Name="CategoryStripe"
                                Grid.Column="0"
                                Width="3"
@@ -119,6 +120,15 @@
                                VerticalAlignment="Center"
                                TextTrimming="CharacterEllipsis"
                                Padding="3,0,0,0"/>
+
+                    <TextBlock x:Name="ReminderBell"
+                               Grid.Column="4"
+                               Text="🔔"
+                               FontSize="9"
+                               VerticalAlignment="Center"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,4,0"
+                               Visibility="Collapsed"/>
                 </Grid>
             </Border>
 
@@ -149,6 +159,12 @@
                 <DataTrigger Binding="{Binding Item.HasCategory}" Value="True">
                     <Setter TargetName="CategoryStripe" Property="Fill"
                             Value="{Binding Item.CategoryBrush}"/>
+                </DataTrigger>
+
+                <DataTrigger Binding="{Binding Item.HasActiveReminder}" Value="True">
+                    <Setter TargetName="ReminderBell" Property="Visibility"   Value="Visible"/>
+                    <Setter TargetName="RowBorder"    Property="BorderBrush"  Value="#E5C07B"/>
+                    <Setter TargetName="RowBorder"    Property="BorderThickness" Value="1"/>
                 </DataTrigger>
 
                 <Trigger Property="IsMouseOver" Value="True">

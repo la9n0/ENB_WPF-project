@@ -7,7 +7,7 @@
         MinHeight="500" MinWidth="700"
         WindowStyle="None"
         AllowsTransparency="True"
-        ResizeMode="CanResizeWithGrip">
+        ResizeMode="CanResize">
 
     <Window.Resources>
         <Style x:Key="IconButton" TargetType="Button">
@@ -69,7 +69,6 @@
                 </Setter.Value>
             </Setter>
         </Style>
-        
 
         <Style x:Key="NewTabButton" TargetType="Button">
             <Setter Property="Background"      Value="Transparent"/>
@@ -130,7 +129,10 @@
         <DropShadowEffect BlurRadius="20" ShadowDepth="0" Opacity="0.6" Color="#000000"/>
     </Window.Effect>
 
-    <Border Background="{DynamicResource WindowBackgroundBrush}" CornerRadius="8" ClipToBounds="True">
+    <Border Background="{DynamicResource WindowBackgroundBrush}"
+            CornerRadius="8"
+            ClipToBounds="True"
+            MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -138,8 +140,9 @@
                 <RowDefinition Height="24"/>
             </Grid.RowDefinitions>
 
-            <Grid Grid.Row="0" Background="{DynamicResource WindowBackgroundBrush}" Height="40"
-                  MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
+            <Grid Grid.Row="0"
+                  Background="{DynamicResource WindowBackgroundBrush}"
+                  Height="40">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
@@ -167,7 +170,6 @@
 
                 <StackPanel Grid.Column="1" Orientation="Horizontal"
                             VerticalAlignment="Stretch" HorizontalAlignment="Left">
-
                     <ItemsControl x:Name="TabStrip" VerticalAlignment="Stretch">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
@@ -246,7 +248,8 @@
                 </StackPanel>
             </Grid>
 
-            <Rectangle Grid.Row="0" Height="1" VerticalAlignment="Bottom" Fill="{DynamicResource BorderBrush}"/>
+            <Rectangle Grid.Row="0" Height="1" VerticalAlignment="Bottom"
+                       Fill="{DynamicResource BorderBrush}"/>
 
             <Grid Grid.Row="1">
                 <Grid.ColumnDefinitions>
@@ -264,7 +267,8 @@
 
                     <Border x:Name="FileManagerToolbar"
                             Grid.Row="0"
-                            BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1"
+                            BorderBrush="{DynamicResource BorderBrush}"
+                            BorderThickness="0,0,0,1"
                             Padding="6,6">
                         <StackPanel Orientation="Horizontal">
                             <Button Style="{DynamicResource IconButton}"
@@ -280,17 +284,20 @@
                             <Button Style="{DynamicResource IconButton}"
                                     ToolTip="{DynamicResource MainTooltipRename}"
                                     Click="Rename_Click">
-                                <TextBlock Text="✏" FontSize="12" Foreground="{DynamicResource ForegroundSubtleBrush}"/>
+                                <TextBlock Text="✏" FontSize="12"
+                                           Foreground="{DynamicResource ForegroundSubtleBrush}"/>
                             </Button>
                             <Button Style="{DynamicResource IconButton}"
                                     ToolTip="{DynamicResource MainTooltipDelete}"
                                     Click="Delete_Click">
-                                <TextBlock Text="🗑" FontSize="12" Foreground="{DynamicResource ForegroundSubtleBrush}"/>
+                                <TextBlock Text="🗑" FontSize="12"
+                                           Foreground="{DynamicResource ForegroundSubtleBrush}"/>
                             </Button>
                             <Button Style="{DynamicResource IconButton}"
                                     ToolTip="{DynamicResource MainTooltipCollapseAll}"
                                     Click="CollapseAll_Click">
-                                <TextBlock Text="⊟" FontSize="12" Foreground="{DynamicResource ForegroundSubtleBrush}"/>
+                                <TextBlock Text="⊟" FontSize="12"
+                                           Foreground="{DynamicResource ForegroundSubtleBrush}"/>
                             </Button>
                         </StackPanel>
                     </Border>
@@ -342,11 +349,11 @@
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        
+
                         <Grid Grid.Column="0" Margin="0,0,10,0" VerticalAlignment="Center">
                             <Grid.RowDefinitions>
-                                    <RowDefinition Height="*"/>
-                                    <RowDefinition Height="*"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
                             <TextBlock x:Name="NoteCreateTime"
                                        Grid.Row="0"
@@ -368,39 +375,46 @@
                                        Visibility="Collapsed"
                                        HorizontalAlignment="Center"
                                        VerticalAlignment="Center"/>
-                            </Grid>
-                            <Grid Grid.Column="1" VerticalAlignment="Center">
-                                <TextBlock x:Name="PageTitle"
-                                                   Text="{DynamicResource MainNewTab}"
-                                                   Foreground="{DynamicResource ForegroundDimBrush}"
-                                                   FontFamily="Segoe UI"
-                                                   FontSize="18"
-                                                   FontWeight="SemiBold"
-                                                   HorizontalAlignment="Center"
-                                                   VerticalAlignment="Center"
-                                                   Cursor="IBeam"
-                                                   MouseLeftButtonDown="PageTitle_MouseLeftButtonDown"/>
-                                <TextBox x:Name="PageTitleEdit"
-                                         Visibility="Collapsed"
-                                         Background="Transparent"
-                                         Foreground="{DynamicResource ForegroundPrimaryBrush}"
-                                         CaretBrush="{DynamicResource ForegroundPrimaryBrush}"
-                                         SelectionBrush="{DynamicResource AccentBrush}"
-                                         BorderThickness="0,0,0,1"
-                                         BorderBrush="{DynamicResource AccentBrush}"
-                                         FontFamily="Segoe UI"
-                                         FontSize="18"
-                                         FontWeight="SemiBold"
-                                         HorizontalAlignment="Center"
-                                         HorizontalContentAlignment="Center"
-                                         MinWidth="200"
-                                         Padding="4,0"
-                                         KeyDown="PageTitleEdit_KeyDown"
-                                         LostFocus="PageTitleEdit_LostFocus"/>
-                            </Grid>
+                        </Grid>
+
+                        <Grid Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock x:Name="PageTitle"
+                                       Text="{DynamicResource MainNewTab}"
+                                       Foreground="{DynamicResource ForegroundDimBrush}"
+                                       FontFamily="Segoe UI"
+                                       FontSize="18"
+                                       FontWeight="SemiBold"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       Cursor="IBeam"
+                                       MouseLeftButtonDown="PageTitle_MouseLeftButtonDown"/>
+                            <TextBox x:Name="PageTitleEdit"
+                                     Visibility="Collapsed"
+                                     Background="Transparent"
+                                     Foreground="{DynamicResource ForegroundPrimaryBrush}"
+                                     CaretBrush="{DynamicResource ForegroundPrimaryBrush}"
+                                     SelectionBrush="{DynamicResource AccentBrush}"
+                                     BorderThickness="0,0,0,1"
+                                     BorderBrush="{DynamicResource AccentBrush}"
+                                     FontFamily="Segoe UI"
+                                     FontSize="18"
+                                     FontWeight="SemiBold"
+                                     HorizontalAlignment="Center"
+                                     HorizontalContentAlignment="Center"
+                                     MinWidth="200"
+                                     Padding="4,0"
+                                     KeyDown="PageTitleEdit_KeyDown"
+                                     LostFocus="PageTitleEdit_LostFocus"/>
+                        </Grid>
 
                         <StackPanel Grid.Column="2" Orientation="Horizontal"
                                     VerticalAlignment="Center" Margin="0,0,10,0">
+                            <Button x:Name="ReminderBtn"
+                                    Style="{DynamicResource EditSaveButton}"
+                                    Content="🔔"
+                                    Visibility="Collapsed"
+                                    Margin="0,0,6,0"
+                                    Click="Reminder_Click"/>
                             <Button x:Name="CategoryBtn"
                                     Style="{DynamicResource EditSaveButton}"
                                     Content="{DynamicResource MainBtnCategory}"
@@ -419,7 +433,6 @@
                                Fill="{DynamicResource BorderSubtleBrush}"/>
 
                     <Grid Grid.Row="1">
-
                         <StackPanel x:Name="EmptyState"
                                     VerticalAlignment="Center"
                                     HorizontalAlignment="Center"
@@ -471,7 +484,8 @@
 
             <Border Grid.Row="2"
                     Background="{DynamicResource WindowBackgroundBrush}"
-                    BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0,1,0,0">
+                    BorderBrush="{DynamicResource BorderSubtleBrush}"
+                    BorderThickness="0,1,0,0">
                 <TextBlock Text="notes"
                            Foreground="{DynamicResource ForegroundGhostBrush}"
                            FontFamily="Segoe UI"
@@ -479,7 +493,6 @@
                            VerticalAlignment="Center"
                            Margin="8,0"/>
             </Border>
-
         </Grid>
     </Border>
 </Window>

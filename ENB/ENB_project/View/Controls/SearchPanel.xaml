@@ -94,19 +94,26 @@
                                Visibility="{Binding CategoryVisibility}"/>
 
                     <StackPanel Grid.Column="1">
-                        <TextBlock x:Name="NameText"
-                                   Text="{Binding Name}"
-                                   FontFamily="Segoe UI"
-                                   FontSize="12.5"
-                                   Padding="10,6"
-                                   FontWeight="SemiBold"
-                                   Foreground="{DynamicResource ForegroundSecondaryBrush}"
-                                   TextTrimming="CharacterEllipsis"/>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock x:Name="NameText"
+                                       Text="{Binding Name}"
+                                       FontFamily="Segoe UI"
+                                       FontSize="12.5"
+                                       Padding="10,6"
+                                       FontWeight="SemiBold"
+                                       Foreground="{DynamicResource ForegroundSecondaryBrush}"
+                                       TextTrimming="CharacterEllipsis"/>
+                            <TextBlock x:Name="ReminderBell"
+                                       Text=" 🔔"
+                                       FontSize="11"
+                                       Padding="10,6"
+                                       VerticalAlignment="Center"
+                                       Visibility="{Binding ReminderVisibility}"/>
+                        </StackPanel>
                         <TextBlock x:Name="SnippetText"
                                    Text="{Binding Snippet}"
                                    FontFamily="Segoe UI"
                                    FontSize="11"
-                                   Padding="10,6"
                                    Foreground="{DynamicResource ForegroundGhostBrush}"
                                    TextTrimming="CharacterEllipsis"
                                    Margin="0,2,0,0"
@@ -116,12 +123,16 @@
             </Border>
             <DataTemplate.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter TargetName="RowBorder"  Property="Background" Value="{DynamicResource SurfaceBrush}"/>
-                    <Setter TargetName="NameText"   Property="Foreground" Value="{DynamicResource ForegroundPrimaryBrush}"/>
+                    <Setter TargetName="RowBorder" Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+                    <Setter TargetName="NameText"  Property="Foreground" Value="{DynamicResource ForegroundPrimaryBrush}"/>
                 </Trigger>
                 <DataTrigger Binding="{Binding CategoryVisibility}" Value="Visible">
                     <Setter TargetName="CategoryStripe" Property="Fill"
                             Value="{Binding CategoryBrush}"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding HasActiveReminder}" Value="True">
+                    <Setter TargetName="RowBorder" Property="BorderBrush"     Value="#E5C07B"/>
+                    <Setter TargetName="RowBorder" Property="BorderThickness" Value="1"/>
                 </DataTrigger>
             </DataTemplate.Triggers>
         </DataTemplate>

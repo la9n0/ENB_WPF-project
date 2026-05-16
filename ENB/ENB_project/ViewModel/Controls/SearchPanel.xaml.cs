@@ -9,9 +9,10 @@ namespace ENB_project.Controls;
 
 public class SearchResultItem
 {
-    public string  Name          { get; set; } = string.Empty;
-    public string  Snippet       { get; set; } = string.Empty;
-    public string? CategoryColor { get; set; }
+    public string  Name             { get; set; } = string.Empty;
+    public string  Snippet          { get; set; } = string.Empty;
+    public string? CategoryColor    { get; set; }
+    public bool    HasActiveReminder { get; set; }
 
     public Visibility SnippetVisibility => string.IsNullOrEmpty(Snippet)
         ? Visibility.Collapsed
@@ -20,6 +21,10 @@ public class SearchResultItem
     public Visibility CategoryVisibility => string.IsNullOrEmpty(CategoryColor)
         ? Visibility.Collapsed
         : Visibility.Visible;
+
+    public Visibility ReminderVisibility => HasActiveReminder
+        ? Visibility.Visible
+        : Visibility.Collapsed;
 
     public SolidColorBrush? CategoryBrush
     {
@@ -104,8 +109,9 @@ public partial class SearchPanel : UserControl, INotifyPropertyChanged
             {
                 results.Add(new SearchResultItem
                 {
-                    Name          = node.Name,
-                    CategoryColor = node.CategoryColor
+                    Name             = node.Name,
+                    CategoryColor    = node.CategoryColor,
+                    HasActiveReminder = node.ReminderTriggered
                 });
                 return;
             }
@@ -117,9 +123,10 @@ public partial class SearchPanel : UserControl, INotifyPropertyChanged
             if (nameMatch || contentMatch)
                 results.Add(new SearchResultItem
                 {
-                    Name          = node.Name,
-                    Snippet       = snippet,
-                    CategoryColor = node.CategoryColor
+                    Name             = node.Name,
+                    Snippet          = snippet,
+                    CategoryColor    = node.CategoryColor,
+                    HasActiveReminder = node.ReminderTriggered
                 });
         });
 

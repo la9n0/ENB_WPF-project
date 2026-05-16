@@ -154,7 +154,8 @@
 
     <Border Background="{DynamicResource WindowBackgroundBrush}"
             CornerRadius="8"
-            ClipToBounds="True">
+            ClipToBounds="True"
+            MouseLeftButtonDown="Border_MouseLeftButtonDown">
         <Grid Margin="20">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*"/>

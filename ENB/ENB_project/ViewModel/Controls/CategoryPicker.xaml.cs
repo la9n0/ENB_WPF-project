@@ -202,5 +202,11 @@ namespace ENB_project
 
         private void Close_Click(object sender, RoutedEventArgs e)
             => DialogResult = false;
+        
+        private void Border_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ButtonState == MouseButtonState.Pressed)
+                DragMove();
+        }
     }
 }

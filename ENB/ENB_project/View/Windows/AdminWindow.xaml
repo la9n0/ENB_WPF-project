@@ -6,7 +6,7 @@
         MinHeight="400" MinWidth="600"
         WindowStyle="None"
         AllowsTransparency="True"
-        ResizeMode="CanResizeWithGrip"
+        ResizeMode="CanResize"
         WindowStartupLocation="CenterScreen">
 
     <Window.Resources>
