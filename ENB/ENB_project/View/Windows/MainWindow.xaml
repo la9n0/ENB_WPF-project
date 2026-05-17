@@ -123,6 +123,39 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <Style x:Key="ConfirmButton" TargetType="Button">
+            <Setter Property="Background"      Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush"     Value="{DynamicResource BorderMutedBrush}"/>
+            <Setter Property="Foreground"      Value="{DynamicResource ForegroundMutedBrush}"/>
+            <Setter Property="FontFamily"      Value="Segoe UI"/>
+            <Setter Property="FontSize"        Value="11"/>
+            <Setter Property="Height"          Value="22"/>
+            <Setter Property="Padding"         Value="10,0"/>
+            <Setter Property="Cursor"          Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="3"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background"  Value="{DynamicResource SurfaceElevatedBrush}"/>
+                                <Setter Property="BorderBrush" Value="{DynamicResource ForegroundGhostBrush}"/>
+                                <Setter Property="Foreground"  Value="{DynamicResource ForegroundPrimaryBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
 
     <Window.Effect>
@@ -263,6 +296,7 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
                     <Border x:Name="FileManagerToolbar"
@@ -327,6 +361,34 @@
                              Margin="4,4"
                              KeyDown="RenameBox_KeyDown"
                              LostFocus="RenameBox_LostFocus"/>
+
+                    <Border x:Name="DeleteConfirmPanel"
+                            Grid.Row="3"
+                            Visibility="Collapsed"
+                            Background="{DynamicResource SurfaceElevatedBrush}"
+                            BorderBrush="{DynamicResource BorderBrush}"
+                            BorderThickness="0,1,0,0"
+                            Padding="8,8">
+                        <StackPanel>
+                            <TextBlock x:Name="DeleteConfirmText"
+                                       Foreground="{DynamicResource ForegroundDimBrush}"
+                                       FontFamily="Segoe UI"
+                                       FontSize="11.5"
+                                       TextWrapping="Wrap"
+                                       Margin="0,0,0,8"/>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                <Button Style="{DynamicResource ConfirmButton}"
+                                        Content="{DynamicResource MainDeleteNo}"
+                                        Margin="0,0,6,0"
+                                        Click="DeleteConfirmNo_Click"/>
+                                <Button Style="{DynamicResource ConfirmButton}"
+                                        Content="{DynamicResource MainDeleteYes}"
+                                        Foreground="#E06C75"
+                                        BorderBrush="#7C2D2D"
+                                        Click="DeleteConfirmYes_Click"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
                 </Grid>
 
                 <GridSplitter Grid.Column="1"
@@ -478,6 +540,39 @@
                                         HorizontalAlignment="Stretch"
                                         VerticalContentAlignment="Stretch"
                                         HorizontalContentAlignment="Stretch"/>
+
+                        <Border x:Name="CriticalBanner"
+                                Visibility="Collapsed"
+                                VerticalAlignment="Top"
+                                Background="#3D1A1A"
+                                BorderBrush="#7C2D2D"
+                                BorderThickness="1"
+                                CornerRadius="4"
+                                Margin="16,12,16,0"
+                                Padding="12,8">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock x:Name="CriticalBannerText"
+                                           Grid.Column="0"
+                                           Foreground="#E06C75"
+                                           FontFamily="Segoe UI"
+                                           FontSize="12"
+                                           TextWrapping="Wrap"
+                                           VerticalAlignment="Center"/>
+                                <Button Grid.Column="1"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Foreground="#E06C75"
+                                        FontSize="12"
+                                        Cursor="Hand"
+                                        Margin="8,0,0,0"
+                                        Padding="4"
+                                        Click="CriticalBannerClose_Click">✕</Button>
+                            </Grid>
+                        </Border>
                     </Grid>
                 </Grid>
             </Grid>

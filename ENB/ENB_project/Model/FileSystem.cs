@@ -12,17 +12,17 @@ namespace ENB_project
             set => _name = value ?? string.Empty;
         }
 
-        public FileItemType ItemType   { get; set; } = FileItemType.File;
-        public bool         IsFolder   => ItemType == FileItemType.Folder;
+        public FileItemType ItemType  { get; set; } = FileItemType.File;
+        public bool         IsFolder  => ItemType == FileItemType.Folder;
 
-        public string?   Content          { get; set; }
-        public int?      CategoryId       { get; set; }
-        public string?   CategoryColor    { get; set; }
-        public DateOnly  EditTime         { get; set; }
-        public DateOnly  CreateTime       { get; set; }
-        public int?      ReminderId       { get; set; }
-        public DateTime? ReminderAt       { get; set; }
-        public string?   ReminderNote     { get; set; }
+        public string?   Content           { get; set; }
+        public int?      CategoryId        { get; set; }
+        public string?   CategoryColor     { get; set; }
+        public DateOnly  EditTime          { get; set; }
+        public DateOnly  CreateTime        { get; set; }
+        public int?      ReminderId        { get; set; }
+        public DateTime? ReminderAt        { get; set; }
+        public string?   ReminderNote      { get; set; }
         public bool      ReminderTriggered { get; set; }
 
         public List<FileSystemNode> Children { get; set; } = new();
@@ -37,55 +37,9 @@ namespace ENB_project
         }
     }
 
-    /// <summary>
-    /// Дерево файловой системы пользователя. Управляет корневыми узлами и предоставляет
-    /// методы для добавления, удаления, перемещения и обхода узлов.
-    /// Является in-memory представлением — все изменения дополнительно персистируются через UserList.
-    /// </summary>
     public class FileSystemTree
     {
         public List<FileSystemNode> Roots { get; set; } = new();
-
-        public FileSystemNode AddToRoot(string name, FileItemType type = FileItemType.File)
-        {
-            var node = new FileSystemNode(name, type);
-            Roots.Add(node);
-            return node;
-        }
-
-        public FileSystemNode AddChild(FileSystemNode parent, string name,
-            FileItemType type = FileItemType.File)
-        {
-            if (!parent.IsFolder)
-                throw MyExceptions.Validation(
-                    $"Узел «{parent.Name}» не является папкой", "FileSystemTree.AddChild");
-
-            var node = new FileSystemNode(name, type) { Parent = parent };
-            parent.Children.Add(node);
-            return node;
-        }
-
-        public FileSystemNode InsertChild(FileSystemNode parent, int index,
-            string name, FileItemType type = FileItemType.File)
-        {
-            if (!parent.IsFolder)
-                throw MyExceptions.Validation(
-                    $"Узел «{parent.Name}» не является папкой", "FileSystemTree.InsertChild");
-
-            var node      = new FileSystemNode(name, type) { Parent = parent };
-            int safeIndex = Math.Clamp(index, 0, parent.Children.Count);
-            parent.Children.Insert(safeIndex, node);
-            return node;
-        }
-
-        public FileSystemNode InsertToRoot(int index, string name,
-            FileItemType type = FileItemType.File)
-        {
-            var node      = new FileSystemNode(name, type);
-            int safeIndex = Math.Clamp(index, 0, Roots.Count);
-            Roots.Insert(safeIndex, node);
-            return node;
-        }
 
         public bool Remove(FileSystemNode node)
         {
@@ -96,22 +50,6 @@ namespace ENB_project
                 return removed;
             }
             return Roots.Remove(node);
-        }
-
-        public void Clear()
-        {
-            foreach (var root in Roots)
-                ClearRecursive(root);
-            Roots.Clear();
-        }
-
-        private static void ClearRecursive(FileSystemNode node)
-        {
-            foreach (var child in node.Children)
-            {
-                child.Parent = null;
-                ClearRecursive(child);
-            }
         }
 
         public void Move(FileSystemNode node, FileSystemNode? newParent)
@@ -151,9 +89,6 @@ namespace ENB_project
             return null;
         }
 
-        /// <summary>
-        /// Обходит всё дерево в глубину. Второй параметр action — глубина узла (0 для корневых).
-        /// </summary>
         public void Traverse(Action<FileSystemNode, int> action)
             => TraverseRecursive(Roots, action, depth: 0);
 

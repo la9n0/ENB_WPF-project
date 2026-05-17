@@ -1,32 +1,35 @@
 ﻿using ENB_project.Controls;
-using Microsoft.EntityFrameworkCore;
+using ENB_project.Data;
 
 namespace ENB_project
 {
-    /// <summary>
-    /// Репозиторий пользователей и их файловых деревьев поверх Entity Framework.
-    /// </summary>
     public class UserList
     {
         public User? GetUser(string login)
         {
-            using var db = new AppDbContext();
-            var entity = db.Users
-                .AsNoTracking()
-                .FirstOrDefault(u => u.Login == login);
+            using var uow = new UnitOfWork();
+            var entity = uow.Users.GetByLogin(login);
+            if (entity == null) return null;
 
-            return entity == null ? null : MapUser(entity, LoadTree(entity.Id));
+            return new User
+            {
+                Login     = entity.Login,
+                Password  = entity.Password,
+                Email     = entity.Email,
+                Theme     = entity.Theme,
+                Language  = entity.Language,
+                IsBlocked = entity.IsBlocked,
+                Tree      = LoadTree(uow, entity.Id)
+            };
         }
 
         public bool AddUser(string login, string password,
             string email, string theme, string language)
         {
-            using var db = new AppDbContext();
+            using var uow = new UnitOfWork();
+            if (uow.Users.Exists(login)) return false;
 
-            if (db.Users.Any(u => u.Login == login))
-                return false;
-
-            db.Users.Add(new UserEntity
+            uow.Users.Add(new UserEntity
             {
                 Login    = login,
                 Password = password,
@@ -34,374 +37,224 @@ namespace ENB_project
                 Theme    = theme,
                 Language = language
             });
-            db.SaveChanges();
+            uow.Commit();
             return true;
         }
 
         public void DelUser(string login)
         {
-            using var db = new AppDbContext();
-            var entity = db.Users.FirstOrDefault(u => u.Login == login);
+            using var uow = new UnitOfWork();
+            var entity = uow.Users.GetByLogin(login);
             if (entity == null) return;
-            db.Users.Remove(entity);
-            db.SaveChanges();
+
+            uow.Users.Remove(entity);
+            uow.Commit();
         }
 
         public bool EditUser(string login, string propertyName, string value)
         {
-            using var db = new AppDbContext();
-            var entity = db.Users.FirstOrDefault(u => u.Login == login);
-            if (entity == null) return false;
-
-            switch (propertyName)
-            {
-                case nameof(User.Password): entity.Password = value; break;
-                case nameof(User.Email):    entity.Email    = value; break;
-                case nameof(User.Theme):    entity.Theme    = value; break;
-                case nameof(User.Language): entity.Language = value; break;
-                default: return false;
-            }
-
-            db.SaveChanges();
-            return true;
+            using var uow = new UnitOfWork();
+            var result = uow.Users.Edit(login, propertyName, value);
+            if (result) uow.Commit();
+            return result;
         }
-
-        public FileSystemTree GetTree(string login)
-        {
-            var entity = GetUserEntity(login, "UserList.GetTree");
-            return LoadTree(entity.Id);
-        }
-
-        public FileSystemNode AddNodeToRoot(string login, string nodeName,
-            FileItemType type = FileItemType.File)
-        {
-            var entity    = GetUserEntity(login, "UserList.AddNodeToRoot");
-            var sortOrder = CountRoots(entity.Id);
-            return CreateNode(entity.Id, null, nodeName, type, sortOrder);
-        }
-
-        public FileSystemNode AddNodeToFolder(string login,
-            FileSystemNode parent, string nodeName,
-            FileItemType type = FileItemType.File)
-        {
-            var entity    = GetUserEntity(login, "UserList.AddNodeToFolder");
-            var parentDb  = GetNodeEntity(parent.Name, entity.Id, "UserList.AddNodeToFolder");
-            var sortOrder = parentDb.Children.Count;
-            return CreateNode(entity.Id, parentDb.Id, nodeName, type, sortOrder);
-        }
-
-        public FileSystemNode InsertNode(string login,
-            FileSystemNode parent, int index, string nodeName,
-            FileItemType type = FileItemType.File)
-        {
-            var entity   = GetUserEntity(login, "UserList.InsertNode");
-            var parentDb = GetNodeEntity(parent.Name, entity.Id, "UserList.InsertNode");
-            return CreateNode(entity.Id, parentDb.Id, nodeName, type, index);
-        }
-
-        public bool RemoveNode(string login, FileSystemNode node)
-        {
-            var entity   = GetUserEntity(login, "UserList.RemoveNode");
-            using var db = new AppDbContext();
-
-            var nodeDb = db.FileSystemNodes
-                .Include(n => n.Children)
-                .FirstOrDefault(n => n.Name == node.Name && n.UserId == entity.Id);
-
-            if (nodeDb == null) return false;
-
-            DeleteNodeRecursive(db, nodeDb);
-            db.SaveChanges();
-            return true;
-        }
-
-        public void MoveNode(string login, FileSystemNode node, FileSystemNode? newParent)
-        {
-            var entity   = GetUserEntity(login, "UserList.MoveNode");
-            using var db = new AppDbContext();
-
-            var nodeDb = db.FileSystemNodes
-                .FirstOrDefault(n => n.Name == node.Name && n.UserId == entity.Id)
-                ?? throw MyExceptions.Navigation(
-                    $"Узел «{node.Name}» не найден", "UserList.MoveNode");
-
-            if (newParent == null)
-            {
-                nodeDb.ParentId  = null;
-                nodeDb.SortOrder = CountRoots(entity.Id);
-            }
-            else
-            {
-                var parentDb = db.FileSystemNodes
-                    .FirstOrDefault(n => n.Name == newParent.Name && n.UserId == entity.Id)
-                    ?? throw MyExceptions.Navigation(
-                        $"Узел «{newParent.Name}» не найден", "UserList.MoveNode");
-
-                nodeDb.ParentId  = parentDb.Id;
-                nodeDb.SortOrder = db.FileSystemNodes.Count(n => n.ParentId == parentDb.Id);
-            }
-
-            db.SaveChanges();
-        }
-
-        public FileSystemNode? FindNode(string login, string nodeName)
-        {
-            var entity   = GetUserEntity(login, "UserList.FindNode");
-            using var db = new AppDbContext();
-
-            var nodeDb = db.FileSystemNodes
-                .AsNoTracking()
-                .Include(n => n.Category)
-                .FirstOrDefault(n => n.Name == nodeName && n.UserId == entity.Id);
-
-            if (nodeDb == null) return null;
-
-            var content = db.NoteContents
-                .AsNoTracking()
-                .FirstOrDefault(c => c.NodeId == nodeDb.Id)?.Content;
-
-            return new FileSystemNode(nodeDb.Name,
-                nodeDb.ItemType == "Folder" ? FileItemType.Folder : FileItemType.File)
-            {
-                Content       = content,
-                CategoryId    = nodeDb.CategoryId,
-                CategoryColor = nodeDb.Category?.Color,
-                CreateTime    = nodeDb.CreateTime,
-                EditTime      = nodeDb.EditTime
-            };
-        }
-
-        public void ClearTree(string login)
-        {
-            var entity   = GetUserEntity(login, "UserList.ClearTree");
-            using var db = new AppDbContext();
-
-            var roots = db.FileSystemNodes
-                .Where(n => n.UserId == entity.Id && n.ParentId == null)
-                .ToList();
-
-            foreach (var root in roots)
-                DeleteNodeRecursive(db, root);
-
-            db.SaveChanges();
-        }
-
-        /// <summary>
-        /// Сохраняет текст и EditTime заметки в транзакции.
-        /// </summary>
-        public async Task SaveNoteContentAsync(string login, string nodeName, string content)
-        {
-            var entity   = GetUserEntity(login, "UserList.SaveNoteContentAsync");
-            using var db = new AppDbContext();
-            await using var tx = await db.Database.BeginTransactionAsync();
-
-            try
-            {
-                var nodeDb = await db.FileSystemNodes
-                    .Include(n => n.NoteContent)
-                    .FirstOrDefaultAsync(n => n.Name == nodeName && n.UserId == entity.Id);
-
-                if (nodeDb == null) { await tx.RollbackAsync(); return; }
-
-                if (nodeDb.NoteContent == null)
-                    nodeDb.NoteContent = new NoteContentEntity { NodeId = nodeDb.Id, Content = content };
-                else
-                    nodeDb.NoteContent.Content = content;
-
-                nodeDb.EditTime = DateOnly.FromDateTime(DateTime.Now);
-
-                await db.SaveChangesAsync();
-                await tx.CommitAsync();
-            }
-            catch
-            {
-                await tx.RollbackAsync();
-                throw;
-            }
-        }
-
-        public void RenameNode(string login, string oldName, string newName)
-        {
-            var entity   = GetUserEntity(login, "UserList.RenameNode");
-            using var db = new AppDbContext();
-
-            var nodeDb = db.FileSystemNodes
-                .FirstOrDefault(n => n.Name == oldName && n.UserId == entity.Id);
-
-            if (nodeDb == null) return;
-
-            nodeDb.Name = newName;
-            db.SaveChanges();
-        }
-
-        /// <summary>
-        /// Устанавливает категорию заметки. Передай null для снятия категории.
-        /// </summary>
-        public void SetNodeCategory(string login, string nodeName, int? categoryId)
-        {
-            var entity   = GetUserEntity(login, "UserList.SetNodeCategory");
-            using var db = new AppDbContext();
-
-            var nodeDb = db.FileSystemNodes
-                .FirstOrDefault(n => n.Name == nodeName && n.UserId == entity.Id);
-
-            if (nodeDb == null) return;
-
-            nodeDb.CategoryId = categoryId;
-            db.SaveChanges();
-        }
-
-        /// <summary>
-        /// Поиск заметок по имени и содержимому через LINQ to Entity.
-        /// </summary>
-        public async Task<List<SearchEfResult>> SearchNotesAsync(string login, string query)
-        {
-            var entity = GetUserEntity(login, "UserList.SearchNotesAsync");
-            using var db = new AppDbContext();
-
-            var trimmed = query.Trim();
-
-            return await db.FileSystemNodes
-                .AsNoTracking()
-                .Include(n => n.NoteContent)
-                .Include(n => n.Category)
-                .Where(n => n.UserId == entity.Id
-                         && n.ItemType == "File"
-                         && (n.Name.Contains(trimmed) ||
-                             (n.NoteContent != null && n.NoteContent.Content.Contains(trimmed))))
-                .OrderBy(n => n.Name)
-                .Select(n => new SearchEfResult
-                {
-                    Name          = n.Name,
-                    CategoryColor = n.Category != null ? n.Category.Color : null
-                })
-                .ToListAsync();
-        }
-
-        public List<Category> GetCategories(string login)
-        {
-            var entity = GetUserEntity(login, "UserList.GetCategories");
-            using var db = new AppDbContext();
-
-            return db.Categories
-                .AsNoTracking()
-                .Where(c => c.UserId == entity.Id)
-                .OrderBy(c => c.Name)
-                .Select(c => new Category { Id = c.Id, Name = c.Name, Color = c.Color })
-                .ToList();
-        }
-
-        public Category AddCategory(string login, string name, string color)
-        {
-            var entity   = GetUserEntity(login, "UserList.AddCategory");
-            using var db = new AppDbContext();
-
-            var cat = new CategoryEntity { UserId = entity.Id, Name = name, Color = color };
-            db.Categories.Add(cat);
-            db.SaveChanges();
-
-            return new Category { Id = cat.Id, Name = cat.Name, Color = cat.Color };
-        }
-
-        public bool EditCategory(int categoryId, string name, string color)
-        {
-            using var db = new AppDbContext();
-            var cat = db.Categories.FirstOrDefault(c => c.Id == categoryId);
-            if (cat == null) return false;
-
-            cat.Name  = name;
-            cat.Color = color;
-            db.SaveChanges();
-            return true;
-        }
-
-        public bool DeleteCategory(int categoryId)
-        {
-            using var db = new AppDbContext();
-            var cat = db.Categories.FirstOrDefault(c => c.Id == categoryId);
-            if (cat == null) return false;
-
-            db.Categories.Remove(cat);
-            db.SaveChanges();
-            return true;
-        }
-        
-        // Добавь эти методы в класс UserList
 
         public List<AdminUserInfo> GetAllUsers()
         {
-            using var db = new AppDbContext();
-            return db.Users
-                .AsNoTracking()
-                .OrderBy(u => u.Login)
+            using var uow = new UnitOfWork();
+            return uow.Users.GetAll()
                 .Select(u => new AdminUserInfo
                 {
                     Id        = u.Id,
                     Login     = u.Login,
                     Email     = u.Email,
                     IsBlocked = u.IsBlocked,
-                    NoteCount = db.FileSystemNodes
-                        .Count(n => n.UserId == u.Id && n.ItemType == "File")
+                    NoteCount = uow.Nodes.CountChildren(u.Id)
                 })
                 .ToList();
         }
 
         public bool SetUserBlocked(string login, bool isBlocked)
         {
-            using var db = new AppDbContext();
-            var entity = db.Users.FirstOrDefault(u => u.Login == login);
-            if (entity == null) return false;
-
-            entity.IsBlocked = isBlocked;
-            db.SaveChanges();
+            using var uow = new UnitOfWork();
+            uow.Users.SetBlocked(login, isBlocked);
+            uow.Commit();
             return true;
         }
 
-        public bool IsUserBlocked(string login)
+        public FileSystemNode AddNodeToRoot(string login, string nodeName,
+            FileItemType type = FileItemType.File)
         {
-            using var db = new AppDbContext();
-            var entity = db.Users.AsNoTracking().FirstOrDefault(u => u.Login == login);
-            return entity?.IsBlocked ?? false;
+            using var uow = new UnitOfWork();
+            var entity    = GetUserEntityOrThrow(uow, login, "UserList.AddNodeToRoot");
+            var sortOrder = uow.Nodes.CountRoots(entity.Id);
+            var node      = BuildNodeEntity(entity.Id, null, nodeName, type, sortOrder);
+            uow.Nodes.Add(node);
+            uow.Commit();
+            return MapNode(node);
         }
-        
+
+        public FileSystemNode AddNodeToFolder(string login,
+            FileSystemNode parent, string nodeName,
+            FileItemType type = FileItemType.File)
+        {
+            using var uow = new UnitOfWork();
+            var entity    = GetUserEntityOrThrow(uow, login, "UserList.AddNodeToFolder");
+            var parentDb  = uow.Nodes.GetByNameWithChildren(parent.Name, entity.Id)
+                            ?? throw MyExceptions.Navigation(
+                                $"Узел «{parent.Name}» не найден", "UserList.AddNodeToFolder");
+            var sortOrder = parentDb.Children.Count;
+            var node      = BuildNodeEntity(entity.Id, parentDb.Id, nodeName, type, sortOrder);
+            uow.Nodes.Add(node);
+            uow.Commit();
+            return MapNode(node);
+        }
+
+        public bool RemoveNode(string login, FileSystemNode node)
+        {
+            using var uow = new UnitOfWork();
+            var entity    = GetUserEntityOrThrow(uow, login, "UserList.RemoveNode");
+            var nodeDb    = uow.Nodes.GetByNameWithChildren(node.Name, entity.Id);
+            if (nodeDb == null) return false;
+
+            uow.Nodes.RemoveRecursive(nodeDb);
+            uow.Commit();
+            return true;
+        }
+
+        public void MoveNode(string login, FileSystemNode node, FileSystemNode? newParent)
+        {
+            using var uow = new UnitOfWork();
+            var entity    = GetUserEntityOrThrow(uow, login, "UserList.MoveNode");
+
+            var nodeDb = uow.Nodes.GetByName(node.Name, entity.Id)
+                         ?? throw MyExceptions.Navigation(
+                             $"Узел «{node.Name}» не найден", "UserList.MoveNode");
+
+            if (newParent == null)
+            {
+                nodeDb.ParentId  = null;
+                nodeDb.SortOrder = uow.Nodes.CountRoots(entity.Id);
+            }
+            else
+            {
+                var parentDb = uow.Nodes.GetByName(newParent.Name, entity.Id)
+                               ?? throw MyExceptions.Navigation(
+                                   $"Узел «{newParent.Name}» не найден", "UserList.MoveNode");
+                nodeDb.ParentId  = parentDb.Id;
+                nodeDb.SortOrder = uow.Nodes.CountChildren(parentDb.Id);
+            }
+
+            uow.Commit();
+        }
+
+        public async Task SaveNoteContentAsync(string login, string nodeName, string content)
+        {
+            using var uow = new UnitOfWork();
+            var entity    = GetUserEntityOrThrow(uow, login, "UserList.SaveNoteContentAsync");
+
+            var nodeDb = uow.Nodes.GetByName(nodeName, entity.Id);
+            if (nodeDb == null) return;
+
+            var noteContent = uow.NoteContents.GetByNodeId(nodeDb.Id);
+            if (noteContent == null)
+                uow.NoteContents.Add(new NoteContentEntity { NodeId = nodeDb.Id, Content = content });
+            else
+                noteContent.Content = content;
+
+            nodeDb.EditTime = DateOnly.FromDateTime(DateTime.Now);
+
+            try   { await uow.CommitAsync(); }
+            catch { uow.Rollback(); throw;   }
+        }
+
+        public void RenameNode(string login, string oldName, string newName)
+        {
+            using var uow = new UnitOfWork();
+            var entity    = GetUserEntityOrThrow(uow, login, "UserList.RenameNode");
+            var nodeDb    = uow.Nodes.GetByName(oldName, entity.Id);
+            if (nodeDb == null) return;
+
+            nodeDb.Name = newName;
+            uow.Commit();
+        }
+
+        public void SetNodeCategory(string login, string nodeName, int? categoryId)
+        {
+            using var uow = new UnitOfWork();
+            var entity    = GetUserEntityOrThrow(uow, login, "UserList.SetNodeCategory");
+            var nodeDb    = uow.Nodes.GetByName(nodeName, entity.Id);
+            if (nodeDb == null) return;
+
+            nodeDb.CategoryId = categoryId;
+            uow.Commit();
+        }
+
+        public List<Category> GetCategories(string login)
+        {
+            using var uow = new UnitOfWork();
+            var entity    = GetUserEntityOrThrow(uow, login, "UserList.GetCategories");
+            return uow.Categories.GetAllForUser(entity.Id)
+                .Select(c => new Category { Id = c.Id, Name = c.Name, Color = c.Color })
+                .ToList();
+        }
+
+        public Category AddCategory(string login, string name, string color)
+        {
+            using var uow = new UnitOfWork();
+            var entity    = GetUserEntityOrThrow(uow, login, "UserList.AddCategory");
+            var cat       = new CategoryEntity { UserId = entity.Id, Name = name, Color = color };
+            uow.Categories.Add(cat);
+            uow.Commit();
+            return new Category { Id = cat.Id, Name = cat.Name, Color = cat.Color };
+        }
+
+        public bool EditCategory(int categoryId, string name, string color)
+        {
+            using var uow = new UnitOfWork();
+            var cat       = uow.Categories.GetById(categoryId);
+            if (cat == null) return false;
+
+            cat.Name  = name;
+            cat.Color = color;
+            uow.Commit();
+            return true;
+        }
+
+        public bool DeleteCategory(int categoryId)
+        {
+            using var uow = new UnitOfWork();
+            var cat       = uow.Categories.GetById(categoryId);
+            if (cat == null) return false;
+
+            uow.Categories.Remove(cat);
+            uow.Commit();
+            return true;
+        }
+
         public Reminder? GetReminder(string login, string nodeName)
         {
-            var entity   = GetUserEntity(login, "UserList.GetReminder");
-            using var db = new AppDbContext();
-
-            var nodeDb = db.FileSystemNodes
-                .AsNoTracking()
-                .FirstOrDefault(n => n.Name == nodeName && n.UserId == entity.Id);
-
+            using var uow = new UnitOfWork();
+            var entity    = GetUserEntityOrThrow(uow, login, "UserList.GetReminder");
+            var nodeDb    = uow.Nodes.GetByName(nodeName, entity.Id);
             if (nodeDb == null) return null;
 
-            var reminder = db.Reminders
-                .AsNoTracking()
-                .FirstOrDefault(r => r.NodeId == nodeDb.Id);
-
-            if (reminder == null) return null;
-
-            return new Reminder
-            {
-                Id          = reminder.Id,
-                NodeId      = reminder.NodeId,
-                RemindAt    = reminder.RemindAt,
-                Note        = reminder.Note,
-                IsTriggered = reminder.IsTriggered
-            };
+            var reminder = uow.Reminders.GetByNodeId(nodeDb.Id);
+            return reminder == null ? null : MapReminder(reminder);
         }
 
         public Reminder SetReminder(string login, string nodeName, DateTime remindAt, string note)
         {
-            var entity   = GetUserEntity(login, "UserList.SetReminder");
-            using var db = new AppDbContext();
+            using var uow = new UnitOfWork();
+            var entity    = GetUserEntityOrThrow(uow, login, "UserList.SetReminder");
 
-            var nodeDb = db.FileSystemNodes
-                .Include(n => n.Reminder)
-                .FirstOrDefault(n => n.Name == nodeName && n.UserId == entity.Id)
-                ?? throw MyExceptions.Navigation($"Узел «{nodeName}» не найден", "UserList.SetReminder");
+            var nodeDb = uow.Nodes.GetByName(nodeName, entity.Id)
+                         ?? throw MyExceptions.Navigation(
+                             $"Узел «{nodeName}» не найден", "UserList.SetReminder");
 
-            if (nodeDb.Reminder == null)
+            var existing = uow.Reminders.GetByNodeId(nodeDb.Id);
+
+            if (existing == null)
             {
                 var reminder = new ReminderEntity
                 {
@@ -411,161 +264,68 @@ namespace ENB_project
                     Note        = note,
                     IsTriggered = false
                 };
-                db.Reminders.Add(reminder);
-                db.SaveChanges();
-
-                return new Reminder
-                {
-                    Id          = reminder.Id,
-                    NodeId      = reminder.NodeId,
-                    RemindAt    = reminder.RemindAt,
-                    Note        = reminder.Note,
-                    IsTriggered = reminder.IsTriggered
-                };
+                uow.Reminders.Add(reminder);
+                uow.Commit();
+                return MapReminder(reminder);
             }
             else
             {
-                nodeDb.Reminder.RemindAt    = remindAt;
-                nodeDb.Reminder.Note        = note;
-                nodeDb.Reminder.IsTriggered = false;
-                db.SaveChanges();
-
-                return new Reminder
-                {
-                    Id          = nodeDb.Reminder.Id,
-                    NodeId      = nodeDb.Reminder.NodeId,
-                    RemindAt    = nodeDb.Reminder.RemindAt,
-                    Note        = nodeDb.Reminder.Note,
-                    IsTriggered = nodeDb.Reminder.IsTriggered
-                };
+                existing.RemindAt    = remindAt;
+                existing.Note        = note;
+                existing.IsTriggered = false;
+                uow.Commit();
+                return MapReminder(existing);
             }
         }
 
         public bool DeleteReminder(string login, string nodeName)
         {
-            var entity   = GetUserEntity(login, "UserList.DeleteReminder");
-            using var db = new AppDbContext();
-
-            var nodeDb = db.FileSystemNodes
-                .FirstOrDefault(n => n.Name == nodeName && n.UserId == entity.Id);
-
+            using var uow = new UnitOfWork();
+            var entity    = GetUserEntityOrThrow(uow, login, "UserList.DeleteReminder");
+            var nodeDb    = uow.Nodes.GetByName(nodeName, entity.Id);
             if (nodeDb == null) return false;
 
-            var reminder = db.Reminders.FirstOrDefault(r => r.NodeId == nodeDb.Id);
+            var reminder = uow.Reminders.GetByNodeId(nodeDb.Id);
             if (reminder == null) return false;
 
-            db.Reminders.Remove(reminder);
-            db.SaveChanges();
+            uow.Reminders.Remove(reminder);
+            uow.Commit();
             return true;
         }
 
         public List<TriggeredReminder> GetAndMarkTriggeredReminders(string login)
         {
-            var entity   = GetUserEntity(login, "UserList.GetAndMarkTriggeredReminders");
-            using var db = new AppDbContext();
+            using var uow = new UnitOfWork();
+            var entity    = GetUserEntityOrThrow(uow, login, "UserList.GetAndMarkTriggeredReminders");
 
-            var now      = DateTime.Now;
-            var triggers = db.Reminders
-                .Include(r => r.Node)
-                .Where(r => r.UserId == entity.Id
-                         && !r.IsTriggered
-                         && r.RemindAt <= now)
-                .ToList();
+            var triggers = uow.Reminders.GetTriggered(entity.Id, DateTime.Now);
+            if (triggers.Count == 0) return new List<TriggeredReminder>();
 
             foreach (var t in triggers)
                 t.IsTriggered = true;
 
-            if (triggers.Count > 0)
-                db.SaveChanges();
+            uow.Commit();
 
             return triggers.Select(t => new TriggeredReminder
             {
-                NoteName   = t.Node.Name,
-                Note       = t.Note,
-                RemindAt   = t.RemindAt
+                NoteName = t.Node.Name,
+                Note     = t.Note,
+                RemindAt = t.RemindAt
             }).ToList();
         }
 
-        private static UserEntity GetUserEntity(string login, string location)
+        public FileSystemTree LoadTreeForUser(string login)
         {
-            using var db = new AppDbContext();
-            return db.Users.AsNoTracking().FirstOrDefault(u => u.Login == login)
-                ?? throw MyExceptions.Navigation(
-                    $"Пользователь «{login}» не найден", location);
+            using var uow = new UnitOfWork();
+            var entity    = GetUserEntityOrThrow(uow, login, "UserList.LoadTreeForUser");
+            return LoadTree(uow, entity.Id);
         }
 
-        private static FileSystemNodeEntity GetNodeEntity(
-            string name, int userId, string location)
+        private static FileSystemTree LoadTree(IUnitOfWork uow, int userId)
         {
-            using var db = new AppDbContext();
-            return db.FileSystemNodes
-                .Include(n => n.Children)
-                .FirstOrDefault(n => n.Name == name && n.UserId == userId)
-                ?? throw MyExceptions.Navigation($"Узел «{name}» не найден", location);
-        }
-
-        private static int CountRoots(int userId)
-        {
-            using var db = new AppDbContext();
-            return db.FileSystemNodes.Count(n => n.UserId == userId && n.ParentId == null);
-        }
-
-        /// <summary>
-        /// Создаёт узел в БД. Для файлов сразу создаёт NoteContent и устанавливает CreateTime/EditTime.
-        /// </summary>
-        private static FileSystemNode CreateNode(
-            int userId, int? parentId, string name, FileItemType type, int sortOrder)
-        {
-            using var db = new AppDbContext();
-
-            var today = DateOnly.FromDateTime(DateTime.Now);
-
-            var entity = new FileSystemNodeEntity
-            {
-                UserId     = userId,
-                ParentId   = parentId,
-                Name       = name,
-                ItemType   = type == FileItemType.Folder ? "Folder" : "File",
-                SortOrder  = sortOrder,
-                CreateTime = today,
-                EditTime   = today
-            };
-
-            db.FileSystemNodes.Add(entity);
-
-            if (type == FileItemType.File)
-                entity.NoteContent = new NoteContentEntity { Content = "" };
-
-            db.SaveChanges();
-
-            return new FileSystemNode(name, type)
-            {
-                CreateTime = today,
-                EditTime   = today
-            };
-        }
-
-        /// <summary>
-        /// Строит FileSystemTree из БД, восстанавливая Parent-ссылки в памяти.
-        /// Контент и категории загружаются одним запросом.
-        /// </summary>
-        private static FileSystemTree LoadTree(int userId)
-        {
-            using var db = new AppDbContext();
-
-            var allNodes = db.FileSystemNodes
-                .AsNoTracking()
-                .Include(n => n.Category)
-                .Include(n => n.Reminder)
-                .Where(n => n.UserId == userId)
-                .OrderBy(n => n.SortOrder)
-                .ToList();
-
+            var allNodes   = uow.Nodes.GetAllForUser(userId);
             var nodeIds    = allNodes.Select(n => n.Id).ToList();
-            var contentMap = db.NoteContents
-                .AsNoTracking()
-                .Where(c => nodeIds.Contains(c.NodeId))
-                .ToDictionary(c => c.NodeId, c => c.Content);
+            var contentMap = uow.NoteContents.GetContentMapForNodes(nodeIds);
 
             var now     = DateTime.Now;
             var nodeMap = allNodes.ToDictionary(
@@ -581,8 +341,9 @@ namespace ENB_project
                     ReminderId        = n.Reminder?.Id,
                     ReminderAt        = n.Reminder?.RemindAt,
                     ReminderNote      = n.Reminder?.Note,
-                    ReminderTriggered = n.Reminder != null && n.Reminder.IsTriggered
-                                                           && n.Reminder.RemindAt <= now
+                    ReminderTriggered = n.Reminder != null
+                                        && n.Reminder.IsTriggered
+                                        && n.Reminder.RemindAt <= now
                 });
 
             var tree = new FileSystemTree();
@@ -590,7 +351,6 @@ namespace ENB_project
             foreach (var entity in allNodes)
             {
                 var node = nodeMap[entity.Id];
-
                 if (entity.ParentId == null)
                     tree.Roots.Add(node);
                 else if (nodeMap.TryGetValue(entity.ParentId.Value, out var parentNode))
@@ -603,37 +363,57 @@ namespace ENB_project
             return tree;
         }
 
-        private static void DeleteNodeRecursive(AppDbContext db, FileSystemNodeEntity node)
+        private static UserEntity GetUserEntityOrThrow(IUnitOfWork uow, string login, string location)
+            => uow.Users.GetByLogin(login)
+               ?? throw MyExceptions.Navigation($"Пользователь «{login}» не найден", location);
+
+        private static FileSystemNodeEntity BuildNodeEntity(
+            int userId, int? parentId, string name, FileItemType type, int sortOrder)
         {
-            var children = db.FileSystemNodes
-                .Where(n => n.ParentId == node.Id)
-                .ToList();
+            var today = DateOnly.FromDateTime(DateTime.Now);
+            var node  = new FileSystemNodeEntity
+            {
+                UserId     = userId,
+                ParentId   = parentId,
+                Name       = name,
+                ItemType   = type == FileItemType.Folder ? "Folder" : "File",
+                SortOrder  = sortOrder,
+                CreateTime = today,
+                EditTime   = today
+            };
 
-            foreach (var child in children)
-                DeleteNodeRecursive(db, child);
+            if (type == FileItemType.File)
+                node.NoteContent = new NoteContentEntity { Content = "" };
 
-            db.FileSystemNodes.Remove(node);
+            return node;
         }
 
-        private static User MapUser(UserEntity entity, FileSystemTree tree) => new()
+        private static FileSystemNode MapNode(FileSystemNodeEntity e) =>
+            new(e.Name, e.ItemType == "Folder" ? FileItemType.Folder : FileItemType.File)
+            {
+                CreateTime = e.CreateTime,
+                EditTime   = e.EditTime
+            };
+
+        private static Reminder MapReminder(ReminderEntity r) => new()
         {
-            Login    = entity.Login,
-            Password = entity.Password,
-            Email    = entity.Email,
-            Theme    = entity.Theme,
-            Language = entity.Language,
-            Tree     = tree
+            Id          = r.Id,
+            NodeId      = r.NodeId,
+            RemindAt    = r.RemindAt,
+            Note        = r.Note,
+            IsTriggered = r.IsTriggered
         };
     }
 
     public class User
     {
-        public required string Login    { get; init; }
-        public required string Password { get; set; }
-        public required string Email    { get; set; }
-        public required string Theme    { get; set; }
-        public required string Language { get; set; }
-        public FileSystemTree  Tree     { get; set; } = new();
+        public required string Login     { get; init; }
+        public required string Password  { get; set; }
+        public required string Email     { get; set; }
+        public required string Theme     { get; set; }
+        public required string Language  { get; set; }
+        public bool            IsBlocked { get; set; }
+        public FileSystemTree  Tree      { get; set; } = new();
     }
 
     public class Category
@@ -643,12 +423,6 @@ namespace ENB_project
         public string Color { get; set; } = "#7C6FCD";
     }
 
-    public class SearchEfResult
-    {
-        public string  Name          { get; set; } = string.Empty;
-        public string? CategoryColor { get; set; }
-    }
-    
     public class AdminUserInfo
     {
         public int    Id        { get; set; }
@@ -657,7 +431,7 @@ namespace ENB_project
         public bool   IsBlocked { get; set; }
         public int    NoteCount { get; set; }
     }
-    
+
     public class Reminder
     {
         public int      Id          { get; set; }

@@ -43,7 +43,8 @@
     <sys:String x:Key="MainEmptyCreateFile">Создать новый файл (Ctrl + N)</sys:String>
     <sys:String x:Key="MainEmptyCreateFolder">Создать папку (Ctrl + Shift + N)</sys:String>
     <sys:String x:Key="MainDeleteConfirm">Удалить «{0}»?</sys:String>
-    <sys:String x:Key="MainDeleteTitle">Подтверждение</sys:String>
+    <sys:String x:Key="MainDeleteYes">Удалить</sys:String>
+    <sys:String x:Key="MainDeleteNo">Отмена</sys:String>
     <sys:String x:Key="MainNewNoteName">Новая заметка</sys:String>
     <sys:String x:Key="MainNewFolderName">Новая папка</sys:String>
     <sys:String x:Key="MainCreateTime">Дата создания</sys:String>
@@ -97,7 +98,8 @@
     <sys:String x:Key="AdminUnblock">Разблокировать</sys:String>
     <sys:String x:Key="AdminDelete">Удалить</sys:String>
     <sys:String x:Key="AdminDeleteConfirm">Удалить пользователя «{0}»?</sys:String>
-    <sys:String x:Key="AdminDeleteTitle">Подтверждение</sys:String>
+    <sys:String x:Key="AdminDeleteYes">Удалить</sys:String>
+    <sys:String x:Key="AdminDeleteNo">Отмена</sys:String>
     <sys:String x:Key="AdminEmpty">Пользователей нет</sys:String>
 
     <sys:String x:Key="ReminderTitle">Напоминание</sys:String>

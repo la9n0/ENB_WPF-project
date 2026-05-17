@@ -26,9 +26,6 @@ namespace ENB_project
             set { _isActive = value; OnPropertyChanged(); }
         }
 
-        /// <summary>
-        /// Имя заметки в дереве. Null означает пустую вкладку без привязанного файла.
-        /// </summary>
         public string? NoteName { get; set; }
 
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -49,7 +46,12 @@ namespace ENB_project
         private bool _isUserMenuOpen = false;
         private bool _isSearchOpen   = false;
 
+        private FileManagerItem? _pendingDeleteItem;
+
         private readonly System.Windows.Threading.DispatcherTimer _reminderTimer = new();
+        private readonly System.Windows.Threading.DispatcherTimer _syncTimer     = new();
+
+        private static readonly TimeSpan SyncInterval = TimeSpan.FromSeconds(30);
 
         public MainWindow(string login)
         {
@@ -59,15 +61,23 @@ namespace ENB_project
             BindShortcuts();
             AddTab();
 
-            _reminderTimer.Interval = TimeSpan.FromMinutes(1);
+            _reminderTimer.Interval = TimeSpan.FromSeconds(1);
             _reminderTimer.Tick    += ReminderTimer_Tick;
             _reminderTimer.Start();
 
-            EnbFunctional.LanguageChanged += OnLanguageChanged;
+            _syncTimer.Interval = SyncInterval;
+            _syncTimer.Tick    += SyncTimer_Tick;
+            _syncTimer.Start();
+
+            EnbFunctional.LanguageChanged      += OnLanguageChanged;
+            MyExceptions.CriticalErrorOccurred += OnCriticalError;
+
             Closed += (_, _) =>
             {
-                EnbFunctional.LanguageChanged -= OnLanguageChanged;
+                EnbFunctional.LanguageChanged      -= OnLanguageChanged;
+                MyExceptions.CriticalErrorOccurred -= OnCriticalError;
                 _reminderTimer.Stop();
+                _syncTimer.Stop();
             };
         }
 
@@ -85,6 +95,18 @@ namespace ENB_project
             if (!_isEditMode)
                 EditSaveBtn.Content = editText;
         }
+
+        private void OnCriticalError(string message)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                CriticalBannerText.Text  = message;
+                CriticalBanner.Visibility = Visibility.Visible;
+            });
+        }
+
+        private void CriticalBannerClose_Click(object sender, RoutedEventArgs e)
+            => CriticalBanner.Visibility = Visibility.Collapsed;
 
         private void LoadUser(string login)
         {
@@ -193,6 +215,35 @@ namespace ENB_project
                         Dispatcher.Invoke(() => OpenNoteInTab(notif.NoteName));
                 };
                 notif.Show();
+            }
+        }
+
+        private void SyncTimer_Tick(object? sender, EventArgs e)
+        {
+            if (_isEditMode) return;
+
+            var freshTree = _userList.LoadTreeForUser(_user.Login);
+
+            var currentNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            freshTree.Traverse((node, _) => currentNames.Add(node.Name));
+
+            var oldNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            _user.Tree.Traverse((node, _) => oldNames.Add(node.Name));
+
+            if (currentNames.SetEquals(oldNames)) return;
+
+            _user.Tree = freshTree;
+
+            MyFileManager.LoadFromTree(_user.Tree);
+
+            if (_isSearchOpen)
+                MySearchPanel.SetTree(_user.Tree);
+
+            if (_activeTab?.NoteName != null && !currentNames.Contains(_activeTab.NoteName))
+            {
+                _activeTab.NoteName = null;
+                _activeTab.Title    = (string)(TryFindResource("MainNewTab") ?? "Новая вкладка");
+                ShowEmpty();
             }
         }
 
@@ -332,10 +383,6 @@ namespace ENB_project
             OpenNoteInTab(e.NoteName);
         }
 
-        /// <summary>
-        /// Открывает заметку в существующей вкладке (если уже открыта),
-        /// иначе переиспользует текущую пустую или создаёт новую.
-        /// </summary>
         private void OpenNoteInTab(string noteName)
         {
             var existing = _tabs.FirstOrDefault(t => t.NoteName == noteName);
@@ -515,19 +562,21 @@ namespace ENB_project
 
             if (!string.IsNullOrEmpty(newName) && oldName != null && oldName != newName)
             {
-                var node = _user.Tree.FindByName(oldName);
+                var resolvedName = GetUniqueName(newName, excludeName: oldName);
+                var node         = _user.Tree.FindByName(oldName);
+
                 if (node != null)
                 {
-                    node.Name = newName;
-                    _userList.RenameNode(_user.Login, oldName, newName);
+                    node.Name = resolvedName;
+                    _userList.RenameNode(_user.Login, oldName, resolvedName);
 
                     foreach (var tab in _tabs.Where(t => t.NoteName == oldName))
                     {
-                        tab.NoteName = newName;
-                        tab.Title    = newName;
+                        tab.NoteName = resolvedName;
+                        tab.Title    = resolvedName;
                     }
 
-                    PageTitle.Text = newName;
+                    PageTitle.Text = resolvedName;
                     MyFileManager.LoadFromTree(_user.Tree);
                 }
             }
@@ -619,14 +668,33 @@ namespace ENB_project
             }
         }
 
+        private string GetUniqueName(string baseName, string? excludeName = null)
+        {
+            var existing = _user.Tree.FindByName(baseName);
+            if (existing == null || string.Equals(existing.Name, excludeName, StringComparison.OrdinalIgnoreCase))
+                return baseName;
+
+            int counter = 1;
+            while (true)
+            {
+                var candidate = $"{baseName} {counter}";
+                var found     = _user.Tree.FindByName(candidate);
+                if (found == null || string.Equals(found.Name, excludeName, StringComparison.OrdinalIgnoreCase))
+                    return candidate;
+                counter++;
+            }
+        }
+
         private void CreateNote()   => CreateItem(FileItemType.File);
         private void CreateFolder() => CreateItem(FileItemType.Folder);
 
         private void CreateItem(FileItemType type)
         {
-            var name = type == FileItemType.Folder
+            var baseName = type == FileItemType.Folder
                 ? (string)(TryFindResource("MainNewFolderName") ?? "Новая папка")
                 : (string)(TryFindResource("MainNewNoteName")   ?? "Новая заметка");
+
+            var name = GetUniqueName(baseName);
 
             var selected = MyFileManager.SelectedItem;
             FileSystemNode newNode;
@@ -682,26 +750,38 @@ namespace ENB_project
             var selected = MyFileManager.SelectedItem;
             if (selected == null) return;
 
-            var confirmText = string.Format(
+            _pendingDeleteItem = selected;
+
+            DeleteConfirmText.Text = string.Format(
                 (string)(TryFindResource("MainDeleteConfirm") ?? "Удалить «{0}»?"),
                 selected.Name);
-            var titleText = (string)(TryFindResource("MainDeleteTitle") ?? "Подтверждение");
 
-            var result = MessageBox.Show(confirmText, titleText,
-                MessageBoxButton.YesNo, MessageBoxImage.Question);
+            DeleteConfirmPanel.Visibility = Visibility.Visible;
+        }
 
-            if (result != MessageBoxResult.Yes) return;
+        private void DeleteConfirmYes_Click(object sender, RoutedEventArgs e)
+        {
+            DeleteConfirmPanel.Visibility = Visibility.Collapsed;
 
-            var node = _user.Tree.FindByName(selected.Name);
-            if (node == null) return;
+            if (_pendingDeleteItem == null) return;
+
+            var node = _user.Tree.FindByName(_pendingDeleteItem.Name);
+            if (node == null) { _pendingDeleteItem = null; return; }
 
             _user.Tree.Remove(node);
             _userList.RemoveNode(_user.Login, node);
 
-            foreach (var tab in _tabs.Where(t => t.NoteName == selected.Name).ToList())
+            foreach (var tab in _tabs.Where(t => t.NoteName == _pendingDeleteItem.Name).ToList())
                 CloseTab(tab);
 
             MyFileManager.LoadFromTree(_user.Tree);
+            _pendingDeleteItem = null;
+        }
+
+        private void DeleteConfirmNo_Click(object sender, RoutedEventArgs e)
+        {
+            DeleteConfirmPanel.Visibility = Visibility.Collapsed;
+            _pendingDeleteItem = null;
         }
 
         private void RenameSelected()
@@ -743,26 +823,25 @@ namespace ENB_project
 
             if (!string.IsNullOrEmpty(newName) && oldName != newName)
             {
-                _userList.RenameNode(_user.Login, oldName, newName);
-                node.Name = newName;
-                item.Name = newName;
+                var resolvedName = GetUniqueName(newName, excludeName: oldName);
+
+                _userList.RenameNode(_user.Login, oldName, resolvedName);
+                node.Name = resolvedName;
+                item.Name = resolvedName;
 
                 foreach (var tab in _tabs.Where(t => t.NoteName == oldName))
                 {
-                    tab.NoteName = newName;
-                    tab.Title    = newName;
+                    tab.NoteName = resolvedName;
+                    tab.Title    = resolvedName;
                 }
 
-                if (_activeTab?.NoteName == newName)
-                    PageTitle.Text = newName;
+                if (_activeTab?.NoteName == resolvedName)
+                    PageTitle.Text = resolvedName;
             }
 
             RenameBox.Visibility = Visibility.Collapsed;
         }
 
-        /// <summary>
-        /// Отменяет переименование. Если узел был только что создан — удаляет его из дерева и БД.
-        /// </summary>
         private void CancelRename()
         {
             RenameBox.Visibility = Visibility.Collapsed;
@@ -770,12 +849,17 @@ namespace ENB_project
             var newNoteName   = (string)(TryFindResource("MainNewNoteName")   ?? "Новая заметка");
             var newFolderName = (string)(TryFindResource("MainNewFolderName") ?? "Новая папка");
 
-            if (RenameBox.Tag is (FileManagerItem item, FileSystemNode node)
-                && (item.Name == newNoteName || item.Name == newFolderName))
+            if (RenameBox.Tag is (FileManagerItem item, FileSystemNode node))
             {
-                _user.Tree.Remove(node);
-                _userList.RemoveNode(_user.Login, node);
-                MyFileManager.LoadFromTree(_user.Tree);
+                bool isNewNote   = item.Name == newNoteName   || item.Name.StartsWith(newNoteName   + " ");
+                bool isNewFolder = item.Name == newFolderName || item.Name.StartsWith(newFolderName + " ");
+
+                if (isNewNote || isNewFolder)
+                {
+                    _user.Tree.Remove(node);
+                    _userList.RemoveNode(_user.Login, node);
+                    MyFileManager.LoadFromTree(_user.Tree);
+                }
             }
         }
 

@@ -10,11 +10,7 @@ namespace ENB_project
     {
         public static event Action<string>? ThemeChanged;
         public static event Action<string>? LanguageChanged;
-
-        /// <summary>
-        /// Заменяет активный словарь темы на Light или Dark.
-        /// Удаляет предыдущий перед добавлением нового, чтобы избежать дублирования.
-        /// </summary>
+        
         public static void ApplyTheme(string themeName)
         {
             var app = Application.Current;

@@ -9,9 +9,9 @@ namespace ENB_project.Controls;
 
 public class SearchResultItem
 {
-    public string  Name             { get; set; } = string.Empty;
-    public string  Snippet          { get; set; } = string.Empty;
-    public string? CategoryColor    { get; set; }
+    public string  Name              { get; set; } = string.Empty;
+    public string  Snippet           { get; set; } = string.Empty;
+    public string? CategoryColor     { get; set; }
     public bool    HasActiveReminder { get; set; }
 
     public Visibility SnippetVisibility => string.IsNullOrEmpty(Snippet)
@@ -133,18 +133,17 @@ public partial class SearchPanel : UserControl, INotifyPropertyChanged
         ResultsList.ItemsSource = results;
 
         if (string.IsNullOrEmpty(trimmed))
+        {
             QueryInfoVisibility = Visibility.Collapsed;
+        }
         else
         {
-            QueryInfo           = $"Найдено: {results.Count}";
+            var template = (string)TryFindResource("SearchFound") ?? "Найдено: {0}";
+            QueryInfo           = string.Format(template, results.Count);
             QueryInfoVisibility = Visibility.Visible;
         }
     }
 
-    /// <summary>
-    /// Вырезает фрагмент текста начиная с первого вхождения запроса.
-    /// Возвращает пустую строку, если совпадений нет.
-    /// </summary>
     private static string BuildSnippet(string? content, string query)
     {
         if (string.IsNullOrEmpty(content)) return string.Empty;

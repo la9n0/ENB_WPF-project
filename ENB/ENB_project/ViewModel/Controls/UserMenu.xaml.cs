@@ -184,21 +184,15 @@ namespace ENB_project.Controls
 
         private void CommitEmail()
         {
-            if (EmailError.Visibility == Visibility.Visible)
+            if (string.IsNullOrWhiteSpace(EmailBox.Text))
             {
-                MessageBox.Show(
-                    (string)TryFindResource("UserMenuErrorEmailInvalid") ?? "Please enter a valid email.",
-                    (string)TryFindResource("UserMenuErrorTitle") ?? "Error");
+                EmailError.Text       = (string)TryFindResource("UserMenuErrorFieldEmpty") ?? "Field cannot be empty.";
+                EmailError.Visibility = Visibility.Visible;
                 return;
             }
 
-            if (string.IsNullOrWhiteSpace(EmailBox.Text))
-            {
-                MessageBox.Show(
-                    (string)TryFindResource("UserMenuErrorFieldEmpty") ?? "Field cannot be empty.",
-                    (string)TryFindResource("UserMenuErrorTitle") ?? "Error");
+            if (EmailError.Visibility == Visibility.Visible)
                 return;
-            }
 
             _userList.EditUser(_login, nameof(User.Email), EmailBox.Text.Trim());
             _user = _userList.GetUser(_login);

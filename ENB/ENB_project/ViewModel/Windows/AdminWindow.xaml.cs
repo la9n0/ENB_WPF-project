@@ -43,6 +43,7 @@ namespace ENB_project
     public partial class AdminWindow : Window
     {
         private readonly UserList _userList = new();
+        private string? _pendingDeleteLogin;
 
         public AdminWindow()
         {
@@ -126,18 +127,30 @@ namespace ENB_project
             if (sender is not System.Windows.Controls.Button btn) return;
             if (btn.Tag is not AdminUserViewModel vm) return;
 
-            var confirmText = string.Format(
+            _pendingDeleteLogin = vm.Login;
+
+            DeleteConfirmText.Text = string.Format(
                 (string)TryFindResource("AdminDeleteConfirm") ?? "Удалить пользователя «{0}»?",
                 vm.Login);
-            var titleText = (string)TryFindResource("AdminDeleteTitle") ?? "Подтверждение";
 
-            var result = MessageBox.Show(confirmText, titleText,
-                MessageBoxButton.YesNo, MessageBoxImage.Warning);
+            DeleteConfirmPanel.Visibility = Visibility.Visible;
+        }
 
-            if (result != MessageBoxResult.Yes) return;
+        private void DeleteConfirmYes_Click(object sender, RoutedEventArgs e)
+        {
+            DeleteConfirmPanel.Visibility = Visibility.Collapsed;
 
-            _userList.DelUser(vm.Login);
+            if (_pendingDeleteLogin == null) return;
+
+            _userList.DelUser(_pendingDeleteLogin);
+            _pendingDeleteLogin = null;
             LoadUsers();
+        }
+
+        private void DeleteConfirmNo_Click(object sender, RoutedEventArgs e)
+        {
+            DeleteConfirmPanel.Visibility = Visibility.Collapsed;
+            _pendingDeleteLogin = null;
         }
 
         private void Refresh_Click(object sender, RoutedEventArgs e)

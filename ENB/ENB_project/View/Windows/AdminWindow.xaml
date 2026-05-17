@@ -83,6 +83,7 @@
                 <RowDefinition Height="40"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="24"/>
             </Grid.RowDefinitions>
 
@@ -304,7 +305,42 @@
                 </StackPanel>
             </ScrollViewer>
 
-            <Border Grid.Row="3"
+            <Border x:Name="DeleteConfirmPanel"
+                    Grid.Row="3"
+                    Visibility="Collapsed"
+                    Background="{DynamicResource SurfaceElevatedBrush}"
+                    BorderBrush="{DynamicResource BorderBrush}"
+                    BorderThickness="0,1,0,0"
+                    Padding="20,10">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock x:Name="DeleteConfirmText"
+                               Grid.Column="0"
+                               Foreground="{DynamicResource ForegroundDimBrush}"
+                               FontFamily="Segoe UI"
+                               FontSize="12"
+                               VerticalAlignment="Center"
+                               TextTrimming="CharacterEllipsis"/>
+                    <StackPanel Grid.Column="1"
+                                Orientation="Horizontal"
+                                Margin="12,0,0,0">
+                        <Button Style="{DynamicResource ActionButton}"
+                                Content="{DynamicResource AdminDeleteNo}"
+                                Margin="0,0,6,0"
+                                Click="DeleteConfirmNo_Click"/>
+                        <Button Style="{DynamicResource ActionButton}"
+                                Content="{DynamicResource AdminDeleteYes}"
+                                Foreground="#E06C75"
+                                BorderBrush="#7C2D2D"
+                                Click="DeleteConfirmYes_Click"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <Border Grid.Row="4"
                     Background="{DynamicResource WindowBackgroundBrush}"
                     BorderBrush="{DynamicResource BorderSubtleBrush}"
                     BorderThickness="0,1,0,0">

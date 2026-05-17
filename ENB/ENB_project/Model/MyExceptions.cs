@@ -1,5 +1,4 @@
 ﻿using System.IO;
-using System.Windows;
 
 namespace ENB_project
 {
@@ -19,10 +18,6 @@ namespace ENB_project
         Critical
     }
 
-    /// <summary>
-    /// Custom application exception with categorization, severity level and automatic
-    /// file logging. Shows a MessageBox for Critical severity.
-    /// </summary>
     public class MyExceptions : Exception
     {
         private static readonly string LogPath = Path.Combine(
@@ -30,6 +25,8 @@ namespace ENB_project
 
         public ExceptionCategory Category { get; }
         public ExceptionSeverity Severity { get; }
+
+        public static event Action<string>? CriticalErrorOccurred;
 
         public MyExceptions(
             string message,
@@ -45,11 +42,7 @@ namespace ENB_project
             Log(message, location, category, severity, inner);
 
             if (severity == ExceptionSeverity.Critical)
-                MessageBox.Show(
-                    $"Critical error: {message}",
-                    "Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
+                CriticalErrorOccurred?.Invoke(message);
         }
 
         private static void Log(
@@ -78,7 +71,6 @@ namespace ENB_project
             }
             catch
             {
-                // логгер не должен ломать приложение
             }
         }
 

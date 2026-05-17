@@ -85,7 +85,7 @@ namespace ENB_project
                     return;
                 }
 
-                if (userList.IsUserBlocked(login))
+                if (user.IsBlocked)
                 {
                     ShowError(ErrorType.User,
                         (string)TryFindResource("LogInUserBlocked") ?? "Account is blocked");
@@ -166,7 +166,7 @@ namespace ENB_project
                     break;
             }
         }
-        
+
         private void Border_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             if (e.ButtonState == MouseButtonState.Pressed)

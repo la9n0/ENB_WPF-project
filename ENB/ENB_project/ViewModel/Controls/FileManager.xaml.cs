@@ -13,13 +13,13 @@ namespace ENB_project.Controls
 
     public class FileManagerItem : INotifyPropertyChanged
     {
-        private string   _name             = string.Empty;
-        private bool     _isExpanded       = false;
-        private bool     _isSelected       = false;
-        private bool     _isDragOver       = false;
-        private string?  _categoryColor    = null;
-        private bool     _hasActiveReminder = false;
-        private FileItemType _itemType     = FileItemType.File;
+        private string       _name              = string.Empty;
+        private bool         _isExpanded        = false;
+        private bool         _isSelected        = false;
+        private bool         _isDragOver        = false;
+        private string?      _categoryColor     = null;
+        private bool         _hasActiveReminder = false;
+        private FileItemType _itemType          = FileItemType.File;
 
         public string Name
         {
@@ -53,9 +53,6 @@ namespace ENB_project.Controls
             set { _isDragOver = value; OnPropertyChanged(); }
         }
 
-        /// <summary>
-        /// HEX-цвет категории (#RRGGBB) или null если категории нет.
-        /// </summary>
         public string? CategoryColor
         {
             get => _categoryColor;
@@ -376,13 +373,6 @@ namespace ENB_project.Controls
         {
             if (!folder.IsFolder) return;
             folder.IsExpanded = true;
-            RebuildFlatList();
-        }
-
-        public void Collapse(FileManagerItem folder)
-        {
-            if (!folder.IsFolder) return;
-            folder.IsExpanded = false;
             RebuildFlatList();
         }
 
